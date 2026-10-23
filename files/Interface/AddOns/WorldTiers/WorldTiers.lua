@@ -3497,6 +3497,7 @@ do
 
     local tm = { state = {}, building = nil, pending = {}, outfits = {}, building_outfits = nil,
                  slot = 0, page = 1, filter = 0, search = "", hiddenOk = true, mode = "looks" }
+    WT.transmog = tm   -- for /dump and tests
     local SlotInfo = {}
     for _, s in ipairs(SLOTS) do SlotInfo[s[1]] = s end
 
@@ -3597,7 +3598,12 @@ do
         b.sel:SetAllPoints()
         b:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
         b.slot = s[1]
-        b:SetScript("OnClick", function(self)
+        b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        b:SetScript("OnClick", function(self, button)
+            if button == "RightButton" then
+                WT.RestoreOriginal(self.slot)
+                return
+            end
             tm.slot, tm.page = self.slot, 1
             tm.mode = "looks"
             WT.RequestLooks()
@@ -3614,6 +3620,11 @@ do
                 GameTooltip:AddLine(st.look == HIDDEN and "Hidden" or ("Showing: " .. (GetItemInfo(st.look) or ("item " .. st.look))), 1, 0.82, 0)
             elseif not st or st.item == 0 then
                 GameTooltip:AddLine("Nothing equipped here.", 0.6, 0.6, 0.6)
+            else
+                GameTooltip:AddLine("Original look", 0.7, 0.7, 0.7)
+            end
+            if st and st.item > 0 then
+                GameTooltip:AddLine("Left-click: choose a look. Right-click: back to the original look.", 0.6, 0.8, 1, true)
             end
             GameTooltip:Show()
         end)
@@ -3650,7 +3661,7 @@ do
     slotCount:SetPoint("LEFT", slotTitle, "RIGHT", 10, 0)
 
     local hideB = Button(right, 90, 22, "Hide slot")
-    local ownB = Button(right, 110, 22, "Your own look")
+    local ownB = Button(right, 130, 22, "Restore original")
     local search = CreateFrame("EditBox", "WorldTiersTransmogSearch", right, "InputBoxTemplate")
     Size(search, 150, 20)
     search:SetPoint("TOPRIGHT", -14, -12)
@@ -3659,6 +3670,11 @@ do
     searchHint:SetPoint("LEFT", 2, 0)
     ownB:SetPoint("RIGHT", search, "LEFT", -10, 0)
     hideB:SetPoint("RIGHT", ownB, "LEFT", -6, 0)
+
+    -- what this slot shows now / after Apply
+    local slotState = right:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    slotState:SetPoint("TOPRIGHT", -14, -44)
+    slotState:SetJustifyH("RIGHT")
 
     local filterButtons = {}
     for i, f in ipairs(FILTERS) do
@@ -3716,7 +3732,7 @@ do
     pageText:SetPoint("RIGHT", prevB, "LEFT", -10, 0)
     local pickHint = right:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     pickHint:SetPoint("BOTTOMLEFT", 14, 14)
-    pickHint:SetText("Click to choose - hover to try on")
+    pickHint:SetText("Click to choose - hover to try on - Restore original (or right-click the slot) to go back")
 
     -- outfits view (shares the right panel)
     local outfitRows = {}
@@ -3739,10 +3755,8 @@ do
     noOutfits:SetText("No outfits yet. Choose a look, then Save as outfit.")
 
     -- ---------------- the bottom bar ----------------
-    local importB = Button(win, 170, 26, "Import equipped looks")
-    importB:SetPoint("BOTTOMLEFT", 24, 24)
-    local resetAll = Button(win, 110, 26, "Reset all")
-    resetAll:SetPoint("LEFT", importB, "RIGHT", 6, 0)
+    local resetAll = Button(win, 170, 26, "Restore all originals")
+    resetAll:SetPoint("BOTTOMLEFT", 24, 24)
     local saveOutfit = Button(win, 140, 26, "Save as outfit")
     saveOutfit:SetPoint("LEFT", resetAll, "RIGHT", 6, 0)
     local applyB = Button(win, 200, 30, "Apply")
@@ -3783,6 +3797,15 @@ do
                 model:TryOn("item:" .. tm.state[s[1]].item)
             end
         end
+    end
+
+    -- back to the item's own look (applied with Apply, like any other choice)
+    function WT.RestoreOriginal(slot)
+        local st = tm.state[slot]
+        if not st or st.item == 0 then return end
+        if (st.look or 0) == 0 then tm.pending[slot] = nil else tm.pending[slot] = 0 end
+        WT.DressModel()
+        RefreshAll()
     end
 
     function WT.SaveOutfit(name)
@@ -3833,7 +3856,7 @@ do
         for _, b in ipairs(filterButtons) do if looks and ARMOR_SLOTS[tm.slot] then b:Show() else b:Hide() end end
         for _, r in ipairs(outfitRows) do r:Hide() end
         noOutfits:Hide()
-        for _, w in ipairs({ prevB, nextB, pageText, pickHint, hideB, ownB, search, slotCount }) do if looks then w:Show() else w:Hide() end end
+        for _, w in ipairs({ prevB, nextB, pageText, pickHint, hideB, ownB, search, slotCount, slotState }) do if looks then w:Show() else w:Hide() end end
         if looks then looksTab:LockHighlight() outfitsTab:UnlockHighlight() else outfitsTab:LockHighlight() looksTab:UnlockHighlight() end
 
         if not looks then
@@ -3865,7 +3888,18 @@ do
             slotCount:SetText(view and (view.total .. " look" .. (view.total == 1 and "" or "s")) or "loading...")
         end
         if tm.hiddenOk and st and st.item > 0 then hideB:Enable() else hideB:Disable() end
-        if st and st.item > 0 then ownB:Enable() else ownB:Disable() end
+        if st and st.item > 0 and Wanted(tm.slot) ~= 0 then ownB:Enable() else ownB:Disable() end
+        local function LookName(e) return e == HIDDEN and "hidden" or (GetItemInfo(e) or ("item " .. e)) end
+        if not st or st.item == 0 then
+            slotState:SetText("")
+        elseif tm.pending[tm.slot] ~= nil then
+            local p = tm.pending[tm.slot]
+            slotState:SetText("|cff20ff20After Apply: " .. (p == 0 and "original look" or LookName(p)) .. "|r")
+        elseif (st.look or 0) > 0 then
+            slotState:SetText("|cffffd100Transmogged: " .. LookName(st.look) .. "|r")
+        else
+            slotState:SetText("|cff999999Original look|r")
+        end
         for i, f in ipairs(FILTERS) do
             if f[1] == tm.filter then filterButtons[i]:LockHighlight() else filterButtons[i]:UnlockHighlight() end
         end
@@ -3915,7 +3949,7 @@ do
     right:EnableMouseWheel(true)
     right:SetScript("OnMouseWheel", function(self, d) if tm.mode == "looks" then Turn(-d) end end)
     hideB:SetScript("OnClick", function() tm.pending[tm.slot] = HIDDEN WT.DressModel() RefreshAll() end)
-    ownB:SetScript("OnClick", function() tm.pending[tm.slot] = 0 WT.DressModel() RefreshAll() end)
+    ownB:SetScript("OnClick", function() WT.RestoreOriginal(tm.slot) end)
     search:SetScript("OnTextChanged", function(self)
         tm.search = self:GetText() or ""
         if tm.search == "" then searchHint:SetText("Search " .. SlotInfo[tm.slot][3]:lower() .. "...") searchHint:Show() else searchHint:Hide() end
@@ -3927,7 +3961,6 @@ do
     end)
     search:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
     resetView:SetScript("OnClick", function() model.rotation, model.zoom = 0.3, 0 WT.DressModel() end)
-    importB:SetScript("OnClick", function() tm.pending = {} WT.DressModel() RefreshAll() end)
     resetAll:SetScript("OnClick", function()
         for _, s in ipairs(SLOTS) do
             local st = tm.state[s[1]]
