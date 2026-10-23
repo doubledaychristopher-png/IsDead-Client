@@ -152,6 +152,159 @@ end
 WT.G = G
 
 -- ---------------------------------------------------------------------------
+-- Your Paragon bonuses, condensed: one row per stat (percent and flat side by
+-- side), the extra effects in short rows, empowered keystones and owned
+-- keystones on one line each. Shown in a scrolling list (board side panel and
+-- the character sheet's panel) so it never runs into the buttons below.
+-- ---------------------------------------------------------------------------
+
+do
+    local FLAT = {
+        ["strength"] = { "Strength" }, ["agility"] = { "Agility" }, ["stamina"] = { "Stamina" },
+        ["intellect"] = { "Intellect" }, ["spirit"] = { "Spirit" }, ["armor"] = { "Armor" },
+        ["critical strike rating"] = { "Critical Strike", " rating" }, ["haste rating"] = { "Haste", " rating" },
+        ["dodge rating"] = { "Avoidance", " dodge" }, ["strength and agility"] = { "Strength & Agility" },
+        ["spell power"] = { "Spell Power" },
+    }
+    -- the extra effects (past soft caps, keystones, glyphs): short label, and the sign it reads with
+    local EXTRA = {
+        ["Critical Damage"] = { "Critical Damage" },
+        ["shorter cooldowns"] = { "Cooldowns", "-" },
+        ["of Leech overhealing kept as a shield"] = { "Overheal to shield" },
+        ["less damage taken"] = { "Damage taken", "-" },
+        ["mounted speed"] = { "Mounted speed" },
+        ["experience"] = { "Experience" },
+        ["gold from creatures"] = { "Gold from creatures" },
+        ["damage to creatures"] = { "Damage to creatures" },
+        ["damage from creatures"] = { "Damage from creatures" },
+    }
+
+    -- lines (as the server sends them) -> items: { l, v } rows, { h } headers, { t } text
+    function WT.CompactTotals(lines, tail)
+        local stats, byLabel, extra, emp, ks, other = {}, {}, {}, {}, {}, {}
+        local empPct
+        local function Row(label)
+            local r = byLabel[label]
+            if not r then r = { l = label, vals = {} } byLabel[label] = r stats[#stats + 1] = r end
+            return r
+        end
+        for _, line in ipairs(lines or {}) do
+            local pct, name = line:match("^([%+%-][%d%.]+%%) ([%a &]+)$")
+            local n, what = line:match("^%+(%d+) (.+)$")
+            local ename, epct = line:match("^(.+) empowered: (%+[%d%.]+%%)$")
+            local kname = line:match("^Keystone: (.+)$")
+            local ov, otext = line:match("^([%+%-]?[%d%.]+%%) (.-) %(.*%)$")
+            local flat = n and FLAT[what:lower()]
+            if pct then
+                local r = Row(name) table.insert(r.vals, 1, pct)
+            elseif flat then
+                local r = Row(flat[1]) r.vals[#r.vals + 1] = "+" .. n .. (flat[2] or "")
+            elseif n and what:find("^attack power") then
+                local share = tonumber(what:match("(%d+)%% as spell power"))
+                local v = "+" .. n
+                if share then v = v .. string.format(" (+%d SP)", math.floor(tonumber(n) * share / 100 + 0.5)) end
+                local r = Row("Attack Power") r.vals[#r.vals + 1] = v
+            elseif ename then
+                emp[#emp + 1] = ename empPct = epct
+            elseif kname then
+                ks[#ks + 1] = kname
+            elseif ov then
+                local e = EXTRA[otext]
+                local label = e and e[1] or (otext:sub(1, 1):upper() .. otext:sub(2))
+                local v = ov
+                if e and e[2] == "-" and v:sub(1, 1) ~= "-" then v = "-" .. v:gsub("^%+", "") end
+                extra[#extra + 1] = { l = label, v = v }
+            else
+                other[#other + 1] = line
+            end
+        end
+        local items = {}
+        for _, r in ipairs(stats) do items[#items + 1] = { l = r.l, v = table.concat(r.vals, "  ") } end
+        if #extra > 0 then
+            items[#items + 1] = { h = "Extra effects" }
+            for _, r in ipairs(extra) do items[#items + 1] = r end
+        end
+        if #ks > 0 then items[#items + 1] = { t = "|cffffd100Keystones:|r " .. table.concat(ks, ", "), gap = true } end
+        if #emp > 0 then items[#items + 1] = { t = "|cffffd100Empowered (" .. empPct .. "):|r " .. table.concat(emp, ", "), gap = #ks == 0 } end
+        local first = true
+        for _, line in ipairs(other) do
+            items[#items + 1] = { t = line:gsub("^(.- set %(%d+%):)", "|cffa335ee%1|r"), gap = first }
+            first = false
+        end
+        for _, line in ipairs(tail or {}) do items[#items + 1] = { t = line, gap = true } end
+        return items
+    end
+
+    -- a scrolling list in parent; place it with list.scroll:SetPoint(...). Set(lines, tail) fills it.
+    local count = 0
+    function WT.TotalsList(parent, width)
+        count = count + 1
+        local name = "WorldTiersTotals" .. count
+        local scroll = CreateFrame("ScrollFrame", name, parent, "UIPanelScrollFrameTemplate")
+        local child = CreateFrame("Frame", nil, scroll)
+        child:SetWidth(width) child:SetHeight(10)
+        scroll:SetScrollChild(child)
+        local list = { scroll = scroll, child = child, pool = {}, height = 0 }
+        local function FS(i, kind)
+            local p = list.pool[i]
+            if not p then
+                p = {}
+                p.left = child:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                p.left:SetJustifyH("LEFT")
+                p.right = child:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                p.right:SetJustifyH("RIGHT")
+                list.pool[i] = p
+            end
+            return p
+        end
+        function list:Set(lines, tail)
+            local items = WT.CompactTotals(lines, tail)
+            if #items == 0 then items = { { t = "Nothing yet. Each Paragon level is a point to spend." } } end
+            local y = 0
+            for i, it in ipairs(items) do
+                local p = FS(i)
+                p.left:ClearAllPoints() p.right:ClearAllPoints()
+                if it.gap or it.h then y = y + 6 end
+                if it.l then
+                    p.left:SetPoint("TOPLEFT", child, "TOPLEFT", 0, -y)
+                    p.left:SetWidth(width * 0.55)
+                    p.left:SetText(it.l)
+                    p.left:SetTextColor(0.9, 0.9, 0.9)
+                    p.right:SetPoint("TOPRIGHT", child, "TOPRIGHT", 0, -y)
+                    p.right:SetWidth(width * 0.6)
+                    p.right:SetText(it.v)
+                    p.right:SetTextColor(0.3, 1, 0.3)
+                    p.right:Show()
+                    y = y + 13
+                else
+                    p.left:SetPoint("TOPLEFT", child, "TOPLEFT", 0, -y)
+                    p.left:SetWidth(width)
+                    p.left:SetText(it.h or it.t)
+                    if it.h then p.left:SetTextColor(1, 0.82, 0) else p.left:SetTextColor(1, 1, 1) end
+                    p.right:Hide()
+                    y = y + math.max(13, (p.left:GetHeight() or 13) + 2)
+                end
+                p.left:Show()
+            end
+            for i = #items + 1, #list.pool do list.pool[i].left:Hide() list.pool[i].right:Hide() end
+            list.height = y
+            child:SetHeight(math.max(10, y))
+            if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
+            list:Fit()
+        end
+        -- the scroll bar only when it doesn't all fit
+        function list:Fit()
+            local bar = _G[name .. "ScrollBar"]
+            if not bar then return end
+            local h = scroll:GetHeight() or 0
+            if h > 0 and list.height > h + 1 then bar:Show() else bar:Hide() scroll:SetVerticalScroll(0) end
+        end
+        scroll:SetScript("OnSizeChanged", function() list:Fit() end)
+        return list
+    end
+end
+
+-- ---------------------------------------------------------------------------
 -- The window
 -- ---------------------------------------------------------------------------
 
@@ -217,11 +370,10 @@ local totalsHeader = side:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 totalsHeader:SetPoint("TOPLEFT", levelText, "BOTTOMLEFT", 0, -14)
 totalsHeader:SetText("Your Paragon bonuses")
 
-local totalsText = side:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-totalsText:SetPoint("TOPLEFT", totalsHeader, "BOTTOMLEFT", 0, -6)
-totalsText:SetWidth(220)
-totalsText:SetJustifyH("LEFT")
-totalsText:SetJustifyV("TOP")
+-- condensed and scrolling: ends above the keystone button and loadouts
+local totalsList = WT.TotalsList(side, 200)
+totalsList.scroll:SetPoint("TOPLEFT", totalsHeader, "BOTTOMLEFT", 0, -6)
+totalsList.scroll:SetPoint("BOTTOMRIGHT", side, "BOTTOMRIGHT", -24, 236)
 
 local hint = side:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
 hint:SetPoint("BOTTOMLEFT", 0, 34)
@@ -302,11 +454,11 @@ panel:SetBackdrop({
 panel:SetBackdropColor(0, 0, 0, 0.85)
 local panelTitle = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 panelTitle:SetPoint("TOPLEFT", 10, -10)
-local panelText = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-panelText:SetPoint("TOPLEFT", panelTitle, "BOTTOMLEFT", 0, -6)
-panelText:SetWidth(190)
-panelText:SetJustifyH("LEFT")
-panelText:SetJustifyV("TOP")
+local PANEL_MAX = 330   -- taller than this and the list scrolls
+local panelList = WT.TotalsList(panel, 196)
+panelList.scroll:SetPoint("TOPLEFT", panelTitle, "BOTTOMLEFT", 0, -6)
+panelList.scroll:SetWidth(196)
+panelList.scroll:SetHeight(40)
 local panelButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
 Size(panelButton, 110, 20)
 panelButton:SetPoint("BOTTOMLEFT", 8, 8)
@@ -316,15 +468,18 @@ panelButton:SetScript("OnClick", function() frame:Show() end)
 local function RefreshPanel()
     local s = WT.state
     panelTitle:SetText(string.format("Paragon %d%s", s.level, s.free > 0 and string.format("  |cff20ff20(%d free)|r", s.free) or ""))
-    local text = table.concat(WT.totals, "\n")
+    local tail = {}
     if WT.reserve and #WT.reserve > 4 and WT.GoldFromCopperString then
-        text = text .. "\n\n|cffffd100Gold Reserve: " .. WT.GoldFromCopperString(WT.reserve) .. "|r"
+        tail[#tail + 1] = "|cffffd100Gold Reserve: " .. WT.GoldFromCopperString(WT.reserve) .. "|r"
     end
     if WT.key and WT.key.text ~= "" then
-        text = text .. "\n\n|cffa335eeTier Key:|r " .. WT.key.text .. (WT.key.best > 0 and ("  (best +" .. WT.key.best .. ")") or "")
+        tail[#tail + 1] = "|cffa335eeTier Key:|r " .. WT.key.text .. (WT.key.best > 0 and ("  (best +" .. WT.key.best .. ")") or "")
     end
-    panelText:SetText(text)
-    panel:SetHeight(math.max(70, panelText:GetHeight() + 60))
+    panelList:Set(WT.totals, tail)
+    local h = math.min(PANEL_MAX, math.max(20, panelList.height))
+    panelList.scroll:SetHeight(h)
+    panelList:Fit()
+    Size(panel, 246, h + 66)
 end
 panel:SetScript("OnShow", function() Send("H") RefreshPanel() end)
 WT.RefreshPanel = RefreshPanel
@@ -882,7 +1037,7 @@ local function RefreshSide()
     local s = WT.state
     pointsText:SetText(string.format("%d point%s free", s.free, s.free == 1 and "" or "s"))
     levelText:SetText(string.format("Paragon level %d - %d on the board\nNext level: %d / %d XP", s.level, s.spent, s.xp, s.xpNext))
-    totalsText:SetText(table.concat(WT.totals, "\n"))
+    totalsList:Set(WT.totals)
     if WT.RefreshPanel then WT.RefreshPanel() end
 end
 
