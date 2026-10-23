@@ -1782,13 +1782,18 @@ local function Decorate(tip, info)
     tip:Show()
 end
 
--- Look the item up (or ask for it); redo the tooltip when the answer comes.
+-- Every tooltip that shows your items: the main one and the comparison ones
+-- ("Currently Equipped"), which the game fills from the item's base numbers too.
+local tips = { GameTooltip }
+
+-- Look the item up (or ask for it); fill the tooltip in when the answer comes.
 local function Lookup(tip, bag, slot, link, redo)
     if not link then return end
     local key = bag .. ":" .. slot
     local hit = itemCache[key]
-    tip.wtKey, tip.wtRedo = key, redo
+    tip.wtKey, tip.wtRedo, tip.wtDone = key, redo, nil
     if hit and hit.link == link then
+        tip.wtDone = true
         Decorate(tip, hit.info)
         return
     end
@@ -1817,7 +1822,36 @@ hooksecurefunc(GameTooltip, "SetInventoryItem", function(tip, unit, invSlot)
     Lookup(tip, bag, slot, GetInventoryItemLink("player", invSlot), function() tip:SetInventoryItem("player", invSlot) end)
 end)
 
-GameTooltip:HookScript("OnTooltipCleared", function(tip) tip.wtKey, tip.wtRedo = nil, nil end)
+GameTooltip:HookScript("OnTooltipCleared", function(tip) tip.wtKey, tip.wtRedo, tip.wtDone = nil, nil, nil end)
+
+-- A comparison tooltip shows one of your equipped items: find which slot, and
+-- scale it like any other. Two of the same ring? The index says which.
+local function HookCompare(tip)
+    if not tip or not tip.SetHyperlinkCompareItem then return end
+    tips[#tips + 1] = tip
+    hooksecurefunc(tip, "SetHyperlinkCompareItem", function(self, link, index, shift, main)
+        local _, shown = self:GetItem()
+        if not shown then return end
+        local id = shown:match("item:(%d+)")
+        local found, seen
+        for inv = 1, 19 do
+            local l = GetInventoryItemLink("player", inv)
+            if l and (l == shown or (id and l:match("item:(%d+)") == id)) then
+                seen = (seen or 0) + 1
+                found = inv
+                if l == shown and (seen >= (index or 1)) then break end
+            end
+        end
+        if not found then return end
+        Lookup(self, -2, found - 1, GetInventoryItemLink("player", found), function()
+            if self:IsShown() then self:SetHyperlinkCompareItem(link, index, shift, main) end
+        end)
+    end)
+    tip:HookScript("OnTooltipCleared", function(self) self.wtKey, self.wtRedo, self.wtDone = nil, nil, nil end)
+end
+for _, name in ipairs({ "ShoppingTooltip1", "ShoppingTooltip2", "ShoppingTooltip3", "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2", "ItemRefShoppingTooltip3" }) do
+    HookCompare(_G[name])
+end
 
 -- I|bag|slot|entry|scaled|effIlvl|ownIlvl|stat|dps|armor|tier|power, and IC| (forget everything)
 function WT.OnItemMessage(msg)
@@ -1830,7 +1864,9 @@ function WT.OnItemMessage(msg)
     end
     if msg:sub(1, 3) == "IC|" then
         itemCache, itemPending, affixPending = {}, {}, {}
-        if GameTooltip:IsShown() and GameTooltip.wtRedo then GameTooltip.wtRedo() end
+        for _, tip in ipairs(tips) do
+            if tip:IsShown() and tip.wtRedo then tip.wtRedo() end
+        end
         return true
     end
     if msg:sub(1, 2) ~= "I|" then return false end
@@ -1847,8 +1883,12 @@ function WT.OnItemMessage(msg)
     }
     affixPending[key] = nil
     itemPending[key] = nil
-    if GameTooltip:IsShown() and GameTooltip.wtKey == key and GameTooltip.wtRedo then
-        GameTooltip.wtRedo()
+    -- fill in every tooltip waiting for this item, where it stands (the comparison tooltips stay put)
+    for _, tip in ipairs(tips) do
+        if tip:IsShown() and tip.wtKey == key and not tip.wtDone then
+            tip.wtDone = true
+            Decorate(tip, itemCache[key].info)
+        end
     end
     return true
 end
