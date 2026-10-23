@@ -1,0 +1,31 @@
+IsDead WoW - getting the game ready
+===================================
+
+You need a World of Warcraft 3.3.5a (12340) client. Then, once:
+
+1. Unzip IsDead-Launcher.zip straight into your World of Warcraft
+   folder, the one with Wow.exe in it. You get two files next to Wow.exe:
+       IsDead Launcher.bat
+       IsDeadLauncher.ps1
+2. Double-click "IsDead Launcher.bat".
+
+That's it. The launcher downloads everything the server needs (the
+IsDead patch files, the All Races / All Classes patch, the World Tiers
+addon and Atlas), clears the Cache folder when needed, then starts
+the game.
+
+From now on, ALWAYS start the game with "IsDead Launcher.bat" instead
+of Wow.exe. It checks for updates every time (a second or two when
+nothing changed) and gets new ones by itself. Make a desktop shortcut
+to it: right-click it > Send to > Desktop (create shortcut).
+
+If you start Wow.exe directly after an update, the game tells you
+your files are out of date: close it and use the launcher.
+
+If Windows shows "Windows protected your PC": More info > Run anyway.
+If something looks broken, open a Command Prompt in the WoW folder and
+run:    "IsDead Launcher.bat" -Repair
+to check every file again.
+
+At the character screen, click AddOns (bottom left) and make sure
+"World Tiers" and "Atlas" are ticked.

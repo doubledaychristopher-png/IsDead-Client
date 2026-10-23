@@ -1,0 +1,778 @@
+{
+  "version": "0.23",
+  "cacheVersion": "bf40dbd9e173ed0c",
+  "realmlist": "",
+  "news": "",
+  "managedDirs": [
+    "Interface/AddOns/WorldTiers",
+    "Interface/AddOns/Atlas"
+  ],
+  "files": [
+    {
+      "path": "Data/enUS/patch-enUS-W.MPQ",
+      "size": 4926523,
+      "sha256": "20b452ace3a964f22208d19852a046f9e056aeed681065e82f65a3e30db5cf6a",
+      "localized": true
+    },
+    {
+      "path": "Data/Patch-A.MPQ",
+      "size": 26685,
+      "sha256": "b0d920ea5a8a7c2d592328d8bc64c5d4aa43c06efe0a92318312165d3608d305"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Atlas.lua",
+      "size": 34757,
+      "sha256": "61e843b0b61e32927434ea8dd33778a42eb1f1f7b001495b0d1c80b382895830"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Atlas.toc",
+      "size": 1005,
+      "sha256": "9949738442441e494884c8df9db2804717a66b793d33abe86e3b216cee0d275a"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Atlas.xml",
+      "size": 13817,
+      "sha256": "a71d312e0214c67b75a2913c08ac2d96a50dbc1e215ccc2779d2ad2ededb6420"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/AtlasButton.lua",
+      "size": 2341,
+      "sha256": "685193c0f19690be62e49c925068741ea2d85bc07a1593f2d4c274d837dae927"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/AtlasButton.xml",
+      "size": 3204,
+      "sha256": "5fa5d5404b5ed55b113fb4f3d53fa0811e49d315fa27dd05bfabbce11fcfc12f"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/AtlasDropDown.lua",
+      "size": 13884,
+      "sha256": "f7c0e4561ae31ec75147693ef34c6ee9fdcabf6cd5297eb928fe75188a42542e"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/AtlasMaps.lua",
+      "size": 135531,
+      "sha256": "824b0d761246c1c706f4821b93066d04429972ef93fa1759cf945b0dbc80b9a2"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/AtlasOptions.lua",
+      "size": 4937,
+      "sha256": "149e7c831a328b9f84a0ca8cc571fd054bb37cff7033186e7926caa4ce4ecdcc"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/AtlasOptions.xml",
+      "size": 7663,
+      "sha256": "59738272abb1621354b4bbe9a8b0a94d3cd5270b28d6c5a8837e47bdf40ce0a5"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Bindings.xml",
+      "size": 1058,
+      "sha256": "167031238b195661d0e391270e1c30b58543e9f743cbefa894ca7872f91116d6"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/ChangeLog.txt",
+      "size": 42200,
+      "sha256": "e3c45c4f8f96a8b5a22ce3fac2827ddcc99a1d820f633af69732dcdc738817ab"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/gpl-v2-deDE.txt",
+      "size": 25034,
+      "sha256": "9e53d7d8e0dedf604cb5bb771b361ca9ed2c11eeb51946bb9520c4e5e34e19b8"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/gpl-v2-enUS.txt",
+      "size": 17987,
+      "sha256": "ab15fd526bd8dd18a9e77ebc139656bf4d33e97fc7238cd11bf60e2b9b8666c6"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/gpl-v2-esES.txt",
+      "size": 21285,
+      "sha256": "e8d46b595d3615cb895d85f18cf02a9bc3533e5d71945f077740daaa819421cf"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/gpl-v2-frFR.txt",
+      "size": 22321,
+      "sha256": "c72e79b40d2f231be330bc668298ff224dced03439a5963e62f3fde1679a78b0"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/gpl-v2-ruRU.txt",
+      "size": 22787,
+      "sha256": "47a67da6ae5372e561d50fb47f1acc1f3f740fab5b4ae1547701d8a1cadb05da"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/gpl-v2-zhCN.txt",
+      "size": 11525,
+      "sha256": "7f91b8981e9d58058082448bd9009d412f5a98248416b77893dbaab5bf64fb45"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/gpl-v2-zhTW.txt",
+      "size": 17178,
+      "sha256": "7b22178cd280d702e4871cfff50fb02091af82b873a670a9e9cec8ae1599f0e1"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/Readme-deDE.txt",
+      "size": 2462,
+      "sha256": "79b7b44b407c9f9a145c537ac53dabd66dfe45abff7b5f31f8764c24fe255ffe"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/Readme-enUS.txt",
+      "size": 2290,
+      "sha256": "036f5b58303bc31b7f8f3db1bf3b78edfca1866990b496a54cc4cddf496a5e10"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/Readme-esES.txt",
+      "size": 2699,
+      "sha256": "3f24aacb2326b4ddbc28f0715a350bb11ef4d96a0f5b6654d4a5da54d4c4aa3f"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/Readme-frFR.txt",
+      "size": 5791,
+      "sha256": "90b38b030ea81c9b9bbced2de63ac62e0c76c5b563f6ec607f8fb2c34bad35c6"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/Readme-ruRU.txt",
+      "size": 4782,
+      "sha256": "a7ed73bd28084715d0056926e63921a4ca61efe20e12407eb561fd4269a3af85"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/Readme-zhCN.txt",
+      "size": 3663,
+      "sha256": "3623fc37915a32502f2a6c33495a2d8e43a294d91dd6601b2c95d51e8deb8e5f"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Docs/Readme-zhTW.txt",
+      "size": 5031,
+      "sha256": "6adc22db8a16336c6cb57710b6624364f6ec7dad021260640f815597e3a6353c"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/AtlasFrame-Bottom.blp",
+      "size": 175972,
+      "sha256": "1117cd8c3100df0f4864b5896e0efb437e5d1859ffedea5039c1353c255623e4"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/AtlasFrame-Bottom2.blp",
+      "size": 88612,
+      "sha256": "1a3e2bf3e1921d03412b9bd4b29ca333d63db8e024fe61c3dd5ec22155390ef6"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/AtlasFrame-Left.blp",
+      "size": 12196,
+      "sha256": "4d8fcc25b874ee18d7f555cc16600f8b01737de3ebd266cd9bed8bf8ebca9b07"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/AtlasFrame-Right.blp",
+      "size": 350724,
+      "sha256": "e35141756db04d3f96eabfd36cd1ff7f7653ad72c708491f5a67d4d9f3b314a5"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/AtlasFrame-Top.blp",
+      "size": 88612,
+      "sha256": "755d583d3cc01508182eccc87057c58d048d46ce49ceab27987a25ad802375c2"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/AtlasIcon.blp",
+      "size": 6660,
+      "sha256": "f3973d2470f6e82178104584090897d72f62ec8a21fb8500fb2cd8ff670c6cab"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/LockButton-Locked-Down.blp",
+      "size": 2564,
+      "sha256": "6e96d3e9572170d784b9686bd2d0d8a843ca1d0d2243ef941324935b325808d7"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/LockButton-Locked-Up.blp",
+      "size": 2564,
+      "sha256": "ce20bccd510f5e77fa3065c50e0e933881c1924fda45662cb2f9dfd6a67160b8"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/LockButton-Unlocked-Down.blp",
+      "size": 2564,
+      "sha256": "a60f474b3d418f592a838966a5ee080fd68141d1c8111d6bd7c1f06a643e03d5"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/LockButton-Unlocked-Up.blp",
+      "size": 2564,
+      "sha256": "4a51373edc1deee19c97496f417ad7b6283d781cecd089d3fdec1da26add19e6"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/AhnKahet.blp",
+      "size": 350724,
+      "sha256": "a4a9997c6128507996833cc98cef29ea4e73da5f94d3c58f996d2d7921e1a4d4"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/AuchAuchenaiCrypts.blp",
+      "size": 350724,
+      "sha256": "57f1bf30c0514f383db35784a80e4f8b0ff6d0d18103860cdb75f6ace28f7ed4"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/AuchindounEnt.blp",
+      "size": 350724,
+      "sha256": "0921f1d756050540ccc6a12f7229ae3b575cf3d1275d8ba0b0dc321ab470dab5"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/AuchManaTombs.blp",
+      "size": 350724,
+      "sha256": "fe57b3793862e73c9785661e37ad9776b0bbe478449730503c2f890bd58f13dc"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/AuchSethekkHalls.blp",
+      "size": 350724,
+      "sha256": "74b4727242739db7cb0d9d2ad4564a923258830cfe6d9991e2749fb92301b8f0"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/AuchShadowLabyrinth.blp",
+      "size": 350724,
+      "sha256": "bafd887468136d107b596d98e85585699bcf5d7326d1b3566787d94fc093f4e6"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/AzjolNerub.blp",
+      "size": 350724,
+      "sha256": "06724aff78268d8eec5c349b4b7de5f0cffb8af5c4a6d7154c669fb0d99f204e"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/BlackfathomDeeps.blp",
+      "size": 350724,
+      "sha256": "a8fe55e3a905f573450d761e0e6cab7ec0a7f0017ae8575ba0e3e5579e371704"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/BlackfathomDeepsEnt.blp",
+      "size": 350724,
+      "sha256": "b5e270afb10788c5a95eb58ab127696be54bc437f28d5cae7cbf41dc7426a023"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/BlackrockDepths.blp",
+      "size": 350724,
+      "sha256": "824067b9a9a5c949bb70ddf170984e578cb3d6849ac95a3250831929a0ff869b"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/BlackrockSpireEnt.blp",
+      "size": 350724,
+      "sha256": "68911a6b7c649a19665313e09cb03d7a1a1e07d5deb60bc84eaab1e0163696d8"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/BlackrockSpireLower.blp",
+      "size": 350724,
+      "sha256": "2d5d50d46c4fbaa871b8286fba2341120ae6eee901d5b7f2488d6594f2025d2e"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/BlackrockSpireUpper.blp",
+      "size": 350724,
+      "sha256": "1c7a2d28675d3924c161126188a0bb7a149862b43c092066efabb757afa1a13e"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/BlackTempleBasement.blp",
+      "size": 350724,
+      "sha256": "cd64e9e5f6c9c3d1ced057484e244844b3c2f4012961cef50b96007c2232bb1f"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/BlackTempleStart.blp",
+      "size": 350724,
+      "sha256": "7784671c6a4c6e37659ac6e438d1ab211a1dca9571c405598be340c2301d7462"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/BlackTempleTop.blp",
+      "size": 350724,
+      "sha256": "e9bb8ab3310a9cbb1ceeb3336d1a08a310a0df551283ab5e8e12a7319e64fee2"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/BlackwingLair.blp",
+      "size": 350724,
+      "sha256": "8996d8e53d71373a96acf7651ea8776c8239ca9916d6abce6e87a489a13dd6a4"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/CFRSerpentshrineCavern.blp",
+      "size": 350724,
+      "sha256": "89d14a5aba44573444f59dfd053343dff8d094eb185d105fd0cafb1bb6725044"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/CFRTheSlavePens.blp",
+      "size": 350724,
+      "sha256": "df1f2d843e256a9a0287e6bf1a95e62894cb5794c80d56e23e18b913df3f10e0"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/CFRTheSteamvault.blp",
+      "size": 350724,
+      "sha256": "9032f34cf864f1f6dd62ceb0c661a88513eb8033f2971ca84b88271f72f28e92"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/CFRTheUnderbog.blp",
+      "size": 350724,
+      "sha256": "746f8d9953865f2535f8d70060a7e58a30b501e1e7379ad792c519615679a8f0"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/CoilfangReservoirEnt.blp",
+      "size": 350724,
+      "sha256": "9ffdde1d3c1db9003569fc6422683044ee736bc86adb7023b08844294bfbeeed"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/CoTBlackMorass.blp",
+      "size": 350724,
+      "sha256": "b2a2a4ac5ac7aaa4b11821a4a7998a4430b5df29442397d682519099ecf7d20b"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/CoTEnt.blp",
+      "size": 350724,
+      "sha256": "6bfdddabe10669b8c1b66376bcdd1154cc35c04e598e1e2eeeb04fb094d34a11"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/CoTHyjal.blp",
+      "size": 350724,
+      "sha256": "295d851fdca8df3b4bb9ff056a8487f4892ca161379c97aa8ff6631962559d5f"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/CoTOldHillsbrad.blp",
+      "size": 350724,
+      "sha256": "479245b8fafb141c24ac4680d1422e45cdd4e49f2f302dc823a5c182b79a5d1e"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/CoTOldStratholme.blp",
+      "size": 350724,
+      "sha256": "bf76d76384d893f516fc8b5de72bc6a981d128c11d5f7cc7a78546fdaed06d97"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/DireMaulEast.blp",
+      "size": 350724,
+      "sha256": "1509a63971e4b445bd4df0451f551f1c971930f3d6916f22126849585f23ad08"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/DireMaulEnt.blp",
+      "size": 350724,
+      "sha256": "b1d535d917af413962e7556abc2a18b8ce4af2b45446da0a38b38933befd6a44"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/DireMaulNorth.blp",
+      "size": 350724,
+      "sha256": "c26f8b3da63d013986d4f69c38cd288947b17881b7557dade7362ebaaa8f2682"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/DireMaulWest.blp",
+      "size": 350724,
+      "sha256": "dc9d3faf0e01c7bcd161ff58930ea1f96ed293a2cd5acb9fe0d5f08305f3cdd2"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/DrakTharonKeep.blp",
+      "size": 350724,
+      "sha256": "53bcd4bbb2fc3cd1213b832f28c9b718bcc5779acc8981f665ea0ccd305c3a51"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/FHHallsOfReflection.blp",
+      "size": 350724,
+      "sha256": "78aad16b2bc9ecaabab1ba8bdf7ce2a137113d638ab22e6c08f4b0b632621847"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/FHPitOfSaron.blp",
+      "size": 350724,
+      "sha256": "d2efdcd8c76d2d90155e7b7f9de425680906785a93726b1f05d51ac04334434d"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/FHTheForgeOfSouls.blp",
+      "size": 350724,
+      "sha256": "e9460edf1678c2fd9245c6f517b1a512c9516a76f04341b6a5fc186a667621c4"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/Gnomeregan.blp",
+      "size": 350724,
+      "sha256": "675583585605aa59c8d2c400501a0cf92927f6b2f52bef5d44eb3a5366087f28"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/GnomereganEnt.blp",
+      "size": 350724,
+      "sha256": "c943ec7e0396b3ba655d3f647e6f79ffaf094f01b2ddf45550ad0eef9ef22ce1"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/GruulsLair.blp",
+      "size": 350724,
+      "sha256": "d1c5a762eb0dc260b0b7d617f2553cfc007415c017f445b9e1ba3cc32bf9b000"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/Gundrak.blp",
+      "size": 350724,
+      "sha256": "8f82e7b4c4d17519457b64a069daba695328b35ecd19e45a888034c9e133a367"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/HCBloodFurnace.blp",
+      "size": 350724,
+      "sha256": "b9cf3a58b888e06b92b8d77714d0550555d1711ecf139d86d3fa978a87966e36"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/HCHellfireRamparts.blp",
+      "size": 350724,
+      "sha256": "c3c7a461b51b40cb35bbe08f10d0e77863f268a14de7f1ec48674c1fdc1155c2"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/HCMagtheridonsLair.blp",
+      "size": 350724,
+      "sha256": "fbef3db43b11690141a4cd6cbfffb46b813eb11f4b1d677057d680efc167ac8d"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/HCTheShatteredHalls.blp",
+      "size": 350724,
+      "sha256": "7547df8ec5df470d44b4bd050537546ac7d892ab755e56ba727f217678ee0fe1"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/IcecrownCitadelA.blp",
+      "size": 350724,
+      "sha256": "7f83597844997a95123d94045620712f3bed701ec9334ecbcd49c2e6b6277508"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/IcecrownCitadelB.blp",
+      "size": 350724,
+      "sha256": "378001eb7be52c30d417f31b9dc21726ef7f1be0615003831d97727ab7545e0c"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/IcecrownCitadelC.blp",
+      "size": 350724,
+      "sha256": "25fc00135b899dee968fd05bcb9cb4cb73d13428f09d588a19a7546f36f846ee"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/KarazhanEnd.blp",
+      "size": 350724,
+      "sha256": "9448e4c1ea254d34f7b4fad1be45ddace73b2fade6b1e8a95a68f40982a799d0"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/KarazhanEnt.blp",
+      "size": 350724,
+      "sha256": "95d2600180d344010c5a3d3c14af09fe642966e58012e2882b349ad3bf1f3277"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/KarazhanStart.blp",
+      "size": 350724,
+      "sha256": "e3cb404bb30ef38b80233f5429612c0052d87e24790ab4ac860145c777df2dd7"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/MagistersTerrace.blp",
+      "size": 350724,
+      "sha256": "6ce9d0abac6ee0ec087219edbe82a1134613a6823e93d209e2ef5e79e8d490eb"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/Maraudon.blp",
+      "size": 350724,
+      "sha256": "b59cac4b6502cb82c6fb1278e46a5668d9121bfa5d89122d1549bb57b0e919a7"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/MaraudonEnt.blp",
+      "size": 350724,
+      "sha256": "d4b4e9dd1563f2484cd4c95c051529d72349fcfe7dc39041918343119e28221b"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/MoltenCore.blp",
+      "size": 350724,
+      "sha256": "e7e78bb851cf9b0796d07bfb588a0bb72bedb6c931b55a1ad7e1edca5101624f"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/Naxxramas.blp",
+      "size": 350724,
+      "sha256": "d9326eb34faa03a041df18baf5e0cca912db29ac350619bf9a6e934c4488e382"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/ObsidianSanctum.blp",
+      "size": 350724,
+      "sha256": "5ad062f572957a823f588234970d121da4b2602b5ef9e0bdd09d3e9a267020c8"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/OnyxiasLair.blp",
+      "size": 350724,
+      "sha256": "0907eb085f5e4750b2319f5acf69ea5111febc2b969809a6838a02b9564c37bf"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/RagefireChasm.blp",
+      "size": 350724,
+      "sha256": "3d6b66f355d65187ff25860c228781a8bd179e841744cb86b6084bfb6610ee41"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/RazorfenDowns.blp",
+      "size": 350724,
+      "sha256": "2fa1fd40daba67946293a6ee51f9444159c6359dc544d1336d742d73447eeb7d"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/RazorfenKraul.blp",
+      "size": 350724,
+      "sha256": "075c7d4e7c214f08c9c19aa101a5c6a01a0b0a097a1cfccd1e90873ed6ccb7af"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/RubySanctum.blp",
+      "size": 175948,
+      "sha256": "de07ec5742d5b6accd006ee2e59a95eeb651eb8424fbd870ee9c8d09437f87ef"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/Scholomance.blp",
+      "size": 350724,
+      "sha256": "851871cb40b9c18de7e6e89dc6df7d7d005a552cc6f0111b868f564186f61391"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/ShadowfangKeep.blp",
+      "size": 350724,
+      "sha256": "0e6f085b8a0dfa582669d549e5940c1744c9361264645cec551c9a017c7ae598"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/SMArmory.blp",
+      "size": 350724,
+      "sha256": "237eb6140bae7258820260371c84d1504296375e6ea0e4a40f32c81c5d1bd69d"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/SMCathedral.blp",
+      "size": 350724,
+      "sha256": "44f3da622d0481d1b7a0eb8b6b353c81fb2949301f1e305bb1919c095a10bbeb"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/SMEnt.blp",
+      "size": 350724,
+      "sha256": "b23d9f14498bc39f4d274d3b483215e1724489f888984c986a5aab9efa1aa2da"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/SMGraveyard.blp",
+      "size": 350724,
+      "sha256": "8522c35833d69c1be7c4e07cf12deb55d2325bb33c82598f8ba98112bbace0a6"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/SMLibrary.blp",
+      "size": 350724,
+      "sha256": "7682177b7d9fcd76aafd88bc1c9618e74c0d31909bf9dc00378697a978b5d815"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/Stratholme.blp",
+      "size": 350724,
+      "sha256": "2eadd82cdca4e2d0b0f1564222c77c6b96cff9f651773374371a879b415e39b2"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/SunwellPlateau.blp",
+      "size": 350724,
+      "sha256": "12f4f1e7d5628d3b19060c32443d578330532ad62fb8828053347b11c96cce69"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TempestKeepArcatraz.blp",
+      "size": 350724,
+      "sha256": "342ed2335cd4adb5e3c82d8b93eb6942f2d73303b28167a4f8f3040cc44ff8fe"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TempestKeepBotanica.blp",
+      "size": 350724,
+      "sha256": "d331aacb765c7a9a8cfedd0623a9bb62c61ddb1f75480bc7b06d490b9f458239"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TempestKeepMechanar.blp",
+      "size": 350724,
+      "sha256": "f387c7e04e1959762f843522cd55f3779c0dac01463c82fbf244449ee0b80bf4"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TempestKeepTheEye.blp",
+      "size": 350724,
+      "sha256": "d271ad924eddf406b7602787902d0d772e6f899f4f4b60303f43ef55b9407123"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TheDeadmines.blp",
+      "size": 350724,
+      "sha256": "7967a4ebf7472352e0bc2a320b917c304c5e8ce882dbcdaf55733d17681ceb8b"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TheDeadminesEnt.blp",
+      "size": 350724,
+      "sha256": "398dea4d1e1d87282ee52eefa9889682deef09d96b09e0cdfb53b91baae05bbc"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TheEyeOfEternity.blp",
+      "size": 350724,
+      "sha256": "7b01b3780766cf8bf4c23ba86a38a6859748b3d0ee210aaecebd8a29d53f788c"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TheNexus.blp",
+      "size": 350724,
+      "sha256": "4cabd5dfec1ce9cb51f72999d70367201fdccdc6cb4f1b1b1a1cb9466d3965ce"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TheOculus.blp",
+      "size": 350724,
+      "sha256": "f42354cc7c15ae153db8f6a8f8958ba503918314b443deb90e8e17a21d3e73ce"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TheRuinsofAhnQiraj.blp",
+      "size": 350724,
+      "sha256": "24b46103e7848a77bb8c81c78c4a5e3e37b538320351349a7015e5a0922a3dcc"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TheStockade.blp",
+      "size": 350724,
+      "sha256": "4d443d7d1a906dc90f3249828df588d8c09d0355d38fe57446a3e324771291c7"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TheSunkenTemple.blp",
+      "size": 350724,
+      "sha256": "8d87369502dfb8ba0240c5927724b1f659614837ca96ff1f2a101a439a7017fd"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TheSunkenTempleEnt.blp",
+      "size": 350724,
+      "sha256": "551314f02002ca3dda45aca569c3a342ac616ae1abeb784f8ecfa6a764c0b651"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TheTempleofAhnQiraj.blp",
+      "size": 350724,
+      "sha256": "64a232bc75f9cf46ca60bd6f4ee085da37e0e33c47f47a9190179eb5fab04a33"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TrialOfTheChampion.blp",
+      "size": 350724,
+      "sha256": "4e4a99a5a86690e6766d59f7e26d39e79379b59b1a80c9df2570f0f3274460ef"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/TrialOfTheCrusader.blp",
+      "size": 350724,
+      "sha256": "cd1d437e4f12d5b43cf0a5ec5bf0d46532440ca8edf2471bd3f5a43706d1e466"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/Uldaman.blp",
+      "size": 350724,
+      "sha256": "b59af2268f449dfea169b1cad8421375d185cc6f4aef85bbb3fc8cea0de2d03a"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/UldamanEnt.blp",
+      "size": 350724,
+      "sha256": "18694d33463a69e2284c8e058eeab8b2c386cc2429cfacf78b0fc43ab427b9b9"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/UlduarA.blp",
+      "size": 350724,
+      "sha256": "6c9ce8d26c2c5c841e1d222fe144b28fcb7370cd05ac85d470907e2d69936b70"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/UlduarB.blp",
+      "size": 350724,
+      "sha256": "f116ca52da43f927f8e32ab4af42096394a367955342ecdc43aafad9c9a6661a"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/UlduarC.blp",
+      "size": 350724,
+      "sha256": "368e86c920f0e49b9efb472f363bbeb6a7d20bd33d4e3a58718f111c77417642"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/UlduarD.blp",
+      "size": 350724,
+      "sha256": "2865a043f59a8f38fccc0f641afed6f01ef466a88209bc84306178ab103a7877"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/UlduarE.blp",
+      "size": 350724,
+      "sha256": "6c8cea6ff7dd401d9585e9c8c8212701d832302526841613c50338faa5e742b8"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/UlduarHallsofLightning.blp",
+      "size": 350724,
+      "sha256": "1f32a53dd0d2d0e5c7ad45b9d5f14d37389f8bbe5379666b31ee86c221a9b30d"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/UlduarHallsofStone.blp",
+      "size": 350724,
+      "sha256": "69ea520de403bb13728817a11a39b882790e6a41251d7ab85fbd4209fccf8c78"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/UtgardeKeep.blp",
+      "size": 350724,
+      "sha256": "e219916d64a1124e176755a99be94c02a44a3c87c059bd0b0644ad09562da56f"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/UtgardePinnacle.blp",
+      "size": 350724,
+      "sha256": "2b5241f92a9df1cf815e8b51fb16c52e7bc253d5fc60b8740722913620fbb23f"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/VaultOfArchavon.blp",
+      "size": 350724,
+      "sha256": "65041757998ee96ebf73e3d8d4cff8aa16e753db855085fe816e431af73e270a"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/VioletHold.blp",
+      "size": 350724,
+      "sha256": "d4eb8ae2b3854d3e3856f4c8b7a750dd8e60348d7fbfda1f9f9e7e46e06fb5e8"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/WailingCaverns.blp",
+      "size": 350724,
+      "sha256": "40353699b14f083612babd6f797622ca4e770027e8dd29fc59175305529d6467"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/WailingCavernsEnt.blp",
+      "size": 350724,
+      "sha256": "962ac06678a60e6cec661c2417f3fd6740fa435809f201de4b863a27daa6e91b"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/ZulAman.blp",
+      "size": 350724,
+      "sha256": "a5e344893a6e0736295de3c3aad7496cb49f1ddc0420beed24d0494eebdbf6fb"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/ZulFarrak.blp",
+      "size": 350724,
+      "sha256": "bb8fda59a675c805d62f9c386ef8a8e9ed281fcec30d0ff5bfbd21a219a8984e"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Images/Maps/ZulGurub.blp",
+      "size": 350724,
+      "sha256": "0056751ceaafe86250cb66c79d70d0e138deaec4b167d018a06626d54b0a44ba"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Libs/CallbackHandler-1.0.lua",
+      "size": 8744,
+      "sha256": "2478c2e41fb7b6ec0f49288e31671790e8f7dd3b053f387f745f4945da0d3566"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Libs/LibDataBroker-1.1.lua",
+      "size": 2276,
+      "sha256": "f77b0808f2db60571eafa3c5d827a821c8dc842dd13b082b4243b16ad6a010cd"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Libs/LibStub.lua",
+      "size": 1367,
+      "sha256": "a59b4c745c1fdb1b5ad22a86394814afecf8549516c18f6a16353960646b47f8"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Locale/Atlas-deDE.lua",
+      "size": 73582,
+      "sha256": "e65fbe04bf6f01c0da00753ab6a74e38d49f3009cc639cfbc298ad7c009f1f11"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Locale/Atlas-enUS.lua",
+      "size": 70613,
+      "sha256": "8dc2d4d188c2067be85d76d76c1beb481a71ce45a643c2de34e95446a2c510a8"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Locale/Atlas-esES.lua",
+      "size": 74119,
+      "sha256": "4378f1e4abcf84ed93197ad9818cd00a01f9ab582da6ffd1cf0741a11173f189"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Locale/Atlas-frFR.lua",
+      "size": 74422,
+      "sha256": "53e4e8735e947a809f271a7b39f6713e6b8d52e490446171b76993e07f76b4bd"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Locale/Atlas-ruRU.lua",
+      "size": 92992,
+      "sha256": "7b74ab118f6f7656981c04f898c100f632710f3b4c77d5f04868b9e5275bd74d"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Locale/Atlas-zhCN.lua",
+      "size": 71010,
+      "sha256": "17c4ef46b470e83804eeab05269bf8aeda696b03cba74b2700c0fa6b77ca4aea"
+    },
+    {
+      "path": "Interface/AddOns/Atlas/Locale/Atlas-zhTW.lua",
+      "size": 70947,
+      "sha256": "b5c8e110a54455760c09ff2305d7735411b4f99f4cae85fdb40d5fcf270bf6b8"
+    },
+    {
+      "path": "Interface/AddOns/WorldTiers/WorldTiers.lua",
+      "size": 234325,
+      "sha256": "61a31d5c12315a13445ce47ca5a4181e8985e395ef0905cc2b522f8ac74ac6cd"
+    },
+    {
+      "path": "Interface/AddOns/WorldTiers/WorldTiers.toc",
+      "size": 512,
+      "sha256": "b4f88ccc5d5ca0d020435f6548bd64668b9a03d2ca29e33433e5647d87c5fd0b"
+    },
+    {
+      "path": "IsDeadLauncher.ps1",
+      "size": 10887,
+      "sha256": "a818d5e6691c57b424933fa30095c25bde184d782243c886843244acb8b8fd10"
+    }
+  ]
+}
