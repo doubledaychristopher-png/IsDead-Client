@@ -3301,6 +3301,44 @@ do
 end
 
 -- ---------------------------------------------------------------------------
+-- No "this item will bind to you" question when looting or rolling on
+-- Bind on Pickup items: answered yes straight away. /wtbind turns the
+-- question back on (or off again), per character.
+-- ---------------------------------------------------------------------------
+
+do
+    local function Auto()
+        return not (WorldTiersCharDB and WorldTiersCharDB.askBind)
+    end
+    local QUIET = { LOOT_BIND = true, CONFIRM_LOOT_ROLL = true }
+    local ev = CreateFrame("Frame")
+    ev:RegisterEvent("LOOT_BIND_CONFIRM")
+    ev:RegisterEvent("CONFIRM_LOOT_ROLL")
+    ev:SetScript("OnEvent", function(self, event, a, b)
+        if not Auto() then return end
+        if event == "LOOT_BIND_CONFIRM" and a then
+            ConfirmLootSlot(a)
+            StaticPopup_Hide("LOOT_BIND")
+        elseif event == "CONFIRM_LOOT_ROLL" and a then
+            ConfirmLootRoll(a, b)
+            StaticPopup_Hide("CONFIRM_LOOT_ROLL")
+        end
+    end)
+    -- whichever runs first, the question never stays on screen
+    hooksecurefunc("StaticPopup_Show", function(which)
+        if QUIET[which] and Auto() then StaticPopup_Hide(which) end
+    end)
+    SLASH_WORLDTIERSBIND1 = "/wtbind"
+    SlashCmdList["WORLDTIERSBIND"] = function()
+        WorldTiersCharDB = WorldTiersCharDB or {}
+        WorldTiersCharDB.askBind = not WorldTiersCharDB.askBind
+        DEFAULT_CHAT_FRAME:AddMessage(WorldTiersCharDB.askBind
+            and "|cffff9933World Tiers:|r you'll be asked again before looting Bind on Pickup items."
+            or "|cffff9933World Tiers:|r Bind on Pickup items are looted without asking.")
+    end
+end
+
+-- ---------------------------------------------------------------------------
 -- Instance maps on the world map (M): inside a dungeon or raid the game has
 -- no map for (most Classic and Burning Crusade ones), the world map shows
 -- its map from Atlas, with its bosses down the side. Instances that have
