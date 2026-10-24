@@ -4306,6 +4306,173 @@ do
 end
 
 -- ---------------------------------------------------------------------------
+-- Treasure Maps: a small compass that points to the spot your map marks,
+-- and a pin on the world map. TM|kind|cursed|zone|x|y (a map in use),
+-- TC|yards|angle (each second; -1: another continent), TX| (done).
+-- ---------------------------------------------------------------------------
+
+do
+    local KINDS = {
+        [0] = { "Worn Map", { 0.12, 1, 0 }, "Interface\\Icons\\INV_Misc_Map_01" },
+        [1] = { "Detailed Map", { 0, 0.44, 0.87 }, "Interface\\Icons\\INV_Misc_Map06" },
+        [2] = { "Ancient Map", { 0.64, 0.21, 0.93 }, "Interface\\Icons\\INV_Scroll_05" },
+        [3] = { "Legendary Map", { 1, 0.5, 0 }, "Interface\\Icons\\Racial_Dwarf_FindTreasure" },
+    }
+    local DIG_RANGE = 12
+    local active = nil   -- { kind, cursed, zone, x, y, yards, angle }
+
+    local f = CreateFrame("Frame", "WorldTiersTreasureFrame", UIParent)
+    Size(f, 230, 70)
+    f:SetPoint("TOP", UIParent, "TOP", 0, -110)
+    f:SetFrameStrata("MEDIUM")
+    f:SetBackdrop({ bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+                    tile = true, tileSize = 16, edgeSize = 14, insets = { left = 3, right = 3, top = 3, bottom = 3 } })
+    f:SetBackdropColor(0.05, 0.04, 0.02, 0.88)
+    f:EnableMouse(true)
+    f:SetMovable(true)
+    f:SetClampedToScreen(true)
+    f:RegisterForDrag("LeftButton")
+    f:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    f:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+    f:Hide()
+
+    local icon = f:CreateTexture(nil, "ARTWORK")
+    Size(icon, 34, 34)
+    icon:SetPoint("LEFT", 10, 0)
+    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("TOPLEFT", icon, "TOPRIGHT", 8, 2)
+    title:SetWidth(130)
+    title:SetJustifyH("LEFT")
+    local zoneText = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    zoneText:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -3)
+    zoneText:SetWidth(130)
+    zoneText:SetJustifyH("LEFT")
+    local hint = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    hint:SetPoint("TOPLEFT", zoneText, "BOTTOMLEFT", 0, -3)
+    hint:SetWidth(130)
+    hint:SetJustifyH("LEFT")
+
+    local arrow = f:CreateTexture(nil, "OVERLAY")
+    Size(arrow, 40, 40)
+    arrow:SetPoint("RIGHT", -12, 4)
+    arrow:SetTexture("Interface\\Minimap\\MinimapArrow")
+    local yards = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    yards:SetPoint("TOP", arrow, "BOTTOM", 0, 2)
+
+    local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
+    Size(close, 20, 20)
+    close:SetPoint("TOPRIGHT", 2, 2)
+    close:SetScript("OnClick", function() f:Hide() end)
+
+    -- the arrow image turned by a (counter-clockwise, radians)
+    local function Turn(tex, a)
+        local c, s = math.cos(a), math.sin(a)
+        local function corner(x, y)
+            local tx, ty = x * c + y * s, -x * s + y * c
+            return 0.5 + tx, 0.5 - ty
+        end
+        local ulx, uly = corner(-0.5, 0.5)
+        local llx, lly = corner(-0.5, -0.5)
+        local urx, ury = corner(0.5, 0.5)
+        local lrx, lry = corner(0.5, -0.5)
+        tex:SetTexCoord(ulx, uly, llx, lly, urx, ury, lrx, lry)
+    end
+    WT.TurnTexture = Turn
+
+    local function Refresh()
+        if not active then return end
+        local k = KINDS[active.kind] or KINDS[0]
+        icon:SetTexture(k[3])
+        title:SetText((active.cursed and "Cursed " or "") .. k[1])
+        title:SetTextColor(k[2][1], k[2][2], k[2][3])
+        zoneText:SetText(string.format("%s  |cffffffff%d, %d|r", active.zone or "?", math.floor((active.x or 0) + 0.5), math.floor((active.y or 0) + 0.5)))
+        local y = active.yards
+        if not y then
+            hint:SetText("")
+            yards:SetText("")
+            arrow:Hide()
+        elseif y < 0 then
+            hint:SetText("On another continent.")
+            yards:SetText("")
+            arrow:Hide()
+        elseif y <= DIG_RANGE then
+            hint:SetText("|cff20ff20You're there: use the map to dig!|r")
+            yards:SetText("|cff20ff20here|r")
+            arrow:Hide()
+        else
+            hint:SetText("Follow the arrow.")
+            yards:SetText(y >= 1000 and string.format("%.1fk yd", y / 1000) or (y .. " yd"))
+            arrow:Show()
+        end
+    end
+
+    f:SetScript("OnUpdate", function()
+        if active and active.angle and arrow:IsShown() and GetPlayerFacing then
+            Turn(arrow, active.angle - (GetPlayerFacing() or 0))
+        end
+    end)
+
+    -- ---------------- the world map pin ----------------
+    local pin
+    local function PlacePin()
+        if not WorldMapButton then return end
+        if not pin then
+            pin = CreateFrame("Frame", nil, WorldMapButton)
+            Size(pin, 22, 22)
+            pin:SetFrameLevel(WorldMapButton:GetFrameLevel() + 10)
+            pin.tex = pin:CreateTexture(nil, "OVERLAY")
+            pin.tex:SetAllPoints()
+            pin:EnableMouse(true)
+            pin:SetScript("OnEnter", function(self)
+                if not active then return end
+                WorldMapTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                WorldMapTooltip:AddLine((active.cursed and "Cursed " or "") .. (KINDS[active.kind] or KINDS[0])[1], 1, 0.82, 0)
+                WorldMapTooltip:AddLine("The spot your treasure map marks.", 1, 1, 1)
+                WorldMapTooltip:Show()
+            end)
+            pin:SetScript("OnLeave", function() WorldMapTooltip:Hide() end)
+        end
+        pin:Hide()
+        if not active or not active.zone then return end
+        local cont, zone = GetCurrentMapContinent(), GetCurrentMapZone()
+        if not cont or cont < 1 or not zone or zone < 1 then return end
+        local name = select(zone, GetMapZones(cont))
+        if name ~= active.zone then return end
+        local w, h = WorldMapButton:GetWidth(), WorldMapButton:GetHeight()
+        pin.tex:SetTexture((KINDS[active.kind] or KINDS[0])[3])
+        pin:ClearAllPoints()
+        pin:SetPoint("CENTER", WorldMapButton, "TOPLEFT", active.x / 100 * w, -active.y / 100 * h)
+        pin:Show()
+    end
+    local mapEvents = CreateFrame("Frame")
+    mapEvents:RegisterEvent("WORLD_MAP_UPDATE")
+    mapEvents:SetScript("OnEvent", function() if WorldMapFrame and WorldMapFrame:IsShown() then PlacePin() end end)
+    if WorldMapFrame then WorldMapFrame:HookScript("OnShow", PlacePin) end
+
+    function WT.OnTreasureMessage(msg)
+        local cmd = msg:match("^(T[MCX])|")
+        if not cmd then return false end
+        local p = Split(msg:sub(4), "|")
+        if cmd == "TM" then
+            active = { kind = tonumber(p[1]) or 0, cursed = p[2] == "1", zone = p[3], x = tonumber(p[4]) or 0, y = tonumber(p[5]) or 0 }
+            f:Show()
+            Refresh()
+            PlacePin()
+        elseif cmd == "TC" and active then
+            active.yards = tonumber(p[1])
+            local a = tonumber(p[2])
+            active.angle = a and a / 1000 or nil
+            Refresh()
+        elseif cmd == "TX" then
+            active = nil
+            f:Hide()
+            if pin then pin:Hide() end
+        end
+        return true
+    end
+end
+
+-- ---------------------------------------------------------------------------
 -- The World Tiers window: tier, Paragon, gear, Tier Key and the Signature
 -- Keystone in one place (the menu spell and the Keeper open it)
 -- ---------------------------------------------------------------------------
@@ -4991,7 +5158,10 @@ do
                 .. "- " .. W .. "Runes" .. E .. " drop from bosses at higher tiers: forge one into a piece for a special effect.\n"
                 .. "- Wearing several pieces from the same affix family gives a set bonus.\n"
                 .. "- The " .. W .. "Power Codex" .. E .. " (the Forge's second tab, or /codex): extract a class unique there (the piece is "
-                .. "destroyed) to keep its power for your whole account, then imprint it onto any rare or better piece." },
+                .. "destroyed) to keep its power for your whole account, then imprint it onto any rare or better piece.\n"
+                .. "- " .. W .. "Treasure Maps" .. E .. " drop from Champions, bosses, Tier Keys and Treasure Goblins. Use one to see "
+                .. "where it leads (a compass points the way), and again at the spot to dig. Better maps have guardians and "
+                .. "better chests; four Map Fragments make a Legendary Map." },
             { "Paragon and Keystones", G .. "Paragon and Keystones" .. E .. "\n\n"
                 .. "- Experience past the level cap fills " .. W .. "Paragon levels" .. E .. ", without end. Each gives a point.\n"
                 .. "- Spend points on the " .. W .. "Paragon Board" .. E .. " (/paragon): eleven arms of stats. Walk out from the centre; "
@@ -5413,14 +5583,14 @@ end
 -- ---------------------------------------------------------------------------
 
 do
-    WT.CLIENT_VERSION = "0.24"
+    WT.CLIENT_VERSION = "0.25"
     local warned = false
     StaticPopupDialogs["WORLDTIERS_OUTDATED"] = {
         text = "|cffff9933Your IsDead WoW client files are out of date.|r\n\n%s\n\nClose the game and start it with |cffffffffIsDead Launcher|r: it updates everything by itself.",
         button1 = OKAY,
         timeout = 0, whileDead = 1, hideOnEscape = 1, showAlert = 1,
     }
-    -- "0.24" newer than "0.23.1"? part by part, as numbers
+    -- "0.25" newer than "0.23.1"? part by part, as numbers
     local function Newer(a, b)
         local pa, pb = {}, {}
         for n in a:gmatch("%d+") do pa[#pa + 1] = tonumber(n) end
@@ -5463,7 +5633,7 @@ events:SetScript("OnEvent", function(self, event, prefix, msg, channel, sender)
         if prefix == PREFIX and sender == UnitName("player") then
             if not WT.OnItemMessage(msg) and not WT.OnBarMessage(msg) and not WT.OnForgeMessage(msg)
                 and not WT.OnChampionMessage(msg) and not WT.OnKeyMessage(msg) and not WT.OnLoadoutMessage(msg)
-                and not WT.OnPouchMessage(msg) and not WT.OnSellMessage(msg) and not WT.OnGlyphMessage(msg) and not WT.OnVersionMessage(msg) and not WT.OnTransmogMessage(msg) and not WT.OnHubMessage(msg) then OnMessage(msg) end
+                and not WT.OnPouchMessage(msg) and not WT.OnSellMessage(msg) and not WT.OnGlyphMessage(msg) and not WT.OnVersionMessage(msg) and not WT.OnTreasureMessage(msg) and not WT.OnTransmogMessage(msg) and not WT.OnHubMessage(msg) then OnMessage(msg) end
         end
     elseif event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_LEVEL_UP" then
         Send("H")
