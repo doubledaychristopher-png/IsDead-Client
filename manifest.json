@@ -771,8 +771,8 @@
     },
     {
       "path": "IsDeadLauncher.ps1",
-      "size": 10887,
-      "sha256": "a818d5e6691c57b424933fa30095c25bde184d782243c886843244acb8b8fd10"
+      "size": 10873,
+      "sha256": "2d415636e317e2bb80ed20ae1c5e19c35893a69c13123542d4f76e325cdc0b7c"
     }
   ]
 }

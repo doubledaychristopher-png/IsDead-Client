@@ -12,7 +12,7 @@ param(
 )
 
 # Filled in by publish.ps1 from config.json:
-$Owner  = 'doubledaychristopher-png'
+$Owner  = 'sumogopher'
 $Repo   = 'IsDead-Client'
 $Branch = 'main'
 
