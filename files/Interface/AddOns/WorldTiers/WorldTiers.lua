@@ -54,17 +54,17 @@ end
 -- The board's shape: the same rules, number for number, as the server's
 -- WorldTiersGrid.h. Change one, change both.
 --
--- Eleven arms, one per stat. Each arm: 4 small nodes and a notable, three
+-- Fourteen arms, one per stat (every stat on every board; the class's best first). Each arm: 4 small nodes and a notable, three
 -- times; off each notable a branch of 2 empower nodes and a keystone; past the
 -- third notable, mastery nodes without end. Node ids: (arm + 1) * 100000 +
 -- branch * 10000 + position (branch 0: the main line). The centre is 0.
 -- ---------------------------------------------------------------------------
 
 local G = {}
-G.ARMS, G.SEGMENT, G.NOTABLES, G.BRANCH, G.MAX_POS = 11, 5, 3, 3, 9999
+G.ARMS, G.SEGMENT, G.NOTABLES, G.BRANCH, G.MAX_POS = 14, 5, 3, 3, 9999
 G.FINITE = G.SEGMENT * G.NOTABLES
 G.ORIGIN = 0
-G.SECTOR_STAT = { 0, 5, 1, 6, 7, 3, 4, 10, 9, 2, 8 }
+G.SECTOR_STAT = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }
 -- kinds: 0 origin, 1 small, 2 notable, 3 keystone, 4 empower, 5 mastery
 G.ORIGIN_KIND, G.SMALL, G.NOTABLE, G.KEYSTONE, G.EMPOWER, G.MASTERY = 0, 1, 2, 3, 4, 5
 
@@ -133,7 +133,7 @@ end
 
 -- the stat on each arm of this character's board (a class board, or the general one)
 function G.SetWedges(list)
-    if #list == 11 then
+    if #list == G.ARMS then
         G.SECTOR_STAT = list
         cellCache = {}
     end
@@ -491,7 +491,7 @@ WT.RefreshPanel = RefreshPanel
 local Draw, OnMessage, Reveal, Blocker, RefundBlocker
 do
 
-local R0, STEP, BSTEP = 64, 44, 40          -- first node's distance, main-line spacing, branch spacing (unzoomed)
+local R0, STEP, BSTEP = 80, 44, 40          -- first node's distance, main-line spacing, branch spacing (unzoomed)
 local TILT = 0.75                          -- how far a branch leans off its arm (radians)
 local NODE = { [0] = 36, [1] = 18, [2] = 28, [3] = 36, [4] = 20, [5] = 16 }   -- by kind
 local MASTERY_AHEAD = 3                    -- mastery nodes shown past the furthest you have
@@ -1316,14 +1316,14 @@ WT.GLYPH = { maxLevel = 20, boostMin = 20.0, boostMax = 58.0,
     [54] = { name = "Beastmaster", icon = "Ability_Hunter_BeastMastery", stat = 13, kind = 0, need = 5, bonus = 1, lo = 3.00, hi = 10.00, text = "%s%% more damage dealt" },
     [55] = { name = "Summoner", icon = "Spell_Shadow_SummonFelGuard", stat = 13, kind = 0, need = 5, bonus = 12, lo = 4.00, hi = 16.00, text = "+%s%% Stamina (board)" },
     [56] = { name = "Kinship", icon = "Ability_Hunter_Pet_Bear", stat = 13, kind = 0, need = 5, bonus = 2, lo = 2.00, hi = 8.00, text = "%s%% less damage taken" },
-    [57] = { name = "Giantslayer", icon = "Ability_Warrior_Decisivestrike", stat = 14, kind = 0, need = 5, bonus = 6, lo = 4.00, hi = 15.00, text = "%s%% more damage to bosses" },
-    [58] = { name = "Dragonbane", icon = "INV_Misc_Head_Dragon_01", stat = 14, kind = 0, need = 5, bonus = 4, lo = 6.00, hi = 25.00, text = "%s%% more critical strike damage" },
-    [59] = { name = "Champion", icon = "Achievement_Boss_Ragnaros", stat = 14, kind = 0, need = 5, bonus = 1, lo = 3.00, hi = 10.00, text = "%s%% more damage dealt" },
-    [60] = { name = "Conqueror", icon = "INV_Misc_Coin_04", stat = 14, kind = 0, need = 5, bonus = 10, lo = 5.00, hi = 25.00, text = "%s%% more gold from creatures" },
-    [61] = { name = "Warlord", icon = "Ability_Warrior_WarCry", stat = 15, kind = 0, need = 5, bonus = 1, lo = 3.00, hi = 10.00, text = "%s%% more damage dealt" },
-    [62] = { name = "Gladiator", icon = "INV_Sword_48", stat = 15, kind = 0, need = 5, bonus = 4, lo = 6.00, hi = 25.00, text = "%s%% more critical strike damage" },
-    [63] = { name = "Vanguard", icon = "Ability_Warrior_ShieldWall", stat = 15, kind = 0, need = 5, bonus = 2, lo = 2.00, hi = 8.00, text = "%s%% less damage taken" },
-    [64] = { name = "Hunter's Mark", icon = "Ability_Hunter_SniperShot", stat = 15, kind = 0, need = 5, bonus = 12, lo = 4.00, hi = 16.00, text = "+%s%% Haste (board)" },
+    [57] = { name = "Giantslayer", icon = "Ability_Warrior_Decisivestrike", stat = 5, kind = 0, need = 5, bonus = 6, lo = 4.00, hi = 15.00, text = "%s%% more damage to bosses" },
+    [58] = { name = "Dragonbane", icon = "INV_Misc_Head_Dragon_01", stat = 5, kind = 0, need = 5, bonus = 4, lo = 6.00, hi = 25.00, text = "%s%% more critical strike damage" },
+    [59] = { name = "Champion", icon = "Achievement_Boss_Ragnaros", stat = 5, kind = 0, need = 5, bonus = 1, lo = 3.00, hi = 10.00, text = "%s%% more damage dealt" },
+    [60] = { name = "Conqueror", icon = "INV_Misc_Coin_04", stat = 5, kind = 0, need = 5, bonus = 10, lo = 5.00, hi = 25.00, text = "%s%% more gold from creatures" },
+    [61] = { name = "Warlord", icon = "Ability_Warrior_WarCry", stat = 0, kind = 0, need = 5, bonus = 1, lo = 3.00, hi = 10.00, text = "%s%% more damage dealt" },
+    [62] = { name = "Gladiator", icon = "INV_Sword_48", stat = 1, kind = 0, need = 5, bonus = 4, lo = 6.00, hi = 25.00, text = "%s%% more critical strike damage" },
+    [63] = { name = "Vanguard", icon = "Ability_Warrior_ShieldWall", stat = 0, kind = 0, need = 5, bonus = 2, lo = 2.00, hi = 8.00, text = "%s%% less damage taken" },
+    [64] = { name = "Hunter's Mark", icon = "Ability_Hunter_SniperShot", stat = 1, kind = 0, need = 5, bonus = 12, lo = 4.00, hi = 16.00, text = "+%s%% Haste (board)" },
     [65] = { name = "Resonance", icon = "Spell_Arcane_ArcaneResilience", stat = 255, kind = 4, need = 2, bonus = 1, lo = 3.00, hi = 10.00, text = "%s%% more damage dealt" },
     [66] = { name = "Echo", icon = "Spell_Arcane_Blink", stat = 255, kind = 4, need = 2, bonus = 5, lo = 2.00, hi = 8.00, text = "%s%% shorter cooldowns" },
     [67] = { name = "Ascendant", icon = "Spell_Holy_AuraMastery", stat = 255, kind = 2, need = 1, bonus = 12, lo = 4.00, hi = 16.00, text = "+%s%% Damage (board)" },
@@ -1714,6 +1714,177 @@ do
         end
         return true
     end
+end
+
+-- ---------------------------------------------------------------------------
+-- Ascendancies: from Paragon 150, one of four for your class. Each grants its
+-- part of the board's three class keystones (always on, outside the slots,
+-- empowered) and signature effects of its own.
+-- JA|slot|name|icon|keystones|text   JE|chosen|level needed|paragon level
+-- ---------------------------------------------------------------------------
+
+do
+    local asc = { list = {}, building = nil, chosen = 0, need = 150, level = 0 }
+
+    local f = CreateFrame("Frame", "WorldTiersAscendancyFrame", UIParent)
+    Size(f, 660, 452)
+    f:SetPoint("CENTER", 0, 20)
+    f:SetFrameStrata("DIALOG")
+    f:SetToplevel(true)
+    f:EnableMouse(true)
+    f:SetMovable(true)
+    f:SetClampedToScreen(true)
+    f:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        tile = true, tileSize = 32, edgeSize = 32,
+        insets = { left = 11, right = 12, top = 12, bottom = 11 },
+    })
+    f:Hide()
+    tinsert(UISpecialFrames, "WorldTiersAscendancyFrame")
+    f:RegisterForDrag("LeftButton")
+    f:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    f:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("TOP", 0, -18)
+    title:SetText("Ascendancy")
+    local sub = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    sub:SetPoint("TOP", title, "BOTTOM", 0, -6)
+    sub:SetWidth(600)
+    local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
+    close:SetPoint("TOPRIGHT", -6, -6)
+
+    StaticPopupDialogs["WORLDTIERS_ASCEND"] = {
+        text = "%s",
+        button1 = ACCEPT, button2 = CANCEL,
+        OnAccept = function(self, data) if data then Send("JC:" .. data) end end,
+        timeout = 0, whileDead = 1, hideOnEscape = 1,
+    }
+
+    local cards = {}
+    for i = 1, 4 do
+        local c = CreateFrame("Frame", nil, f)
+        Size(c, 304, 176)
+        c:SetPoint("TOPLEFT", 20 + ((i - 1) % 2) * 316, -62 - math.floor((i - 1) / 2) * 186)
+        c:SetBackdrop({ bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+                        tile = true, tileSize = 16, edgeSize = 14, insets = { left = 3, right = 3, top = 3, bottom = 3 } })
+        c.icon = c:CreateTexture(nil, "ARTWORK")
+        Size(c.icon, 40, 40)
+        c.icon:SetPoint("TOPLEFT", 12, -12)
+        c.name = c:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+        c.name:SetPoint("TOPLEFT", c.icon, "TOPRIGHT", 10, -2)
+        c.name:SetWidth(232)
+        c.name:SetJustifyH("LEFT")
+        c.ks = c:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        c.ks:SetPoint("TOPLEFT", c.name, "BOTTOMLEFT", 0, -3)
+        c.ks:SetWidth(232)
+        c.ks:SetJustifyH("LEFT")
+        c.ks:SetTextColor(1, 0.82, 0)
+        c.text = c:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        c.text:SetPoint("TOPLEFT", 12, -64)
+        c.text:SetWidth(280)
+        c.text:SetHeight(76)
+        c.text:SetJustifyH("LEFT")
+        c.text:SetJustifyV("TOP")
+        c.button = CreateFrame("Button", nil, c, "UIPanelButtonTemplate")
+        Size(c.button, 110, 22)
+        c.button:SetPoint("BOTTOMRIGHT", -10, 10)
+        c.state = c:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        c.state:SetPoint("BOTTOMLEFT", 12, 14)
+        cards[i] = c
+    end
+    local note = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    note:SetPoint("BOTTOM", 0, 18)
+    note:SetWidth(600)
+    note:SetText("An Ascendancy's keystones are always on, outside your keystone slots, and count as empowered. Change it any time out of combat.")
+
+    local function Refresh()
+        local open = asc.level >= asc.need
+        if open then
+            sub:SetText(asc.chosen > 0 and "Your Ascendancy is chosen. You can change it any time out of combat."
+                or "|cff20ff20Choose one.|r Each takes one part of your class's keystones to new heights.")
+        else
+            sub:SetText(string.format("Ascendancies open at |cffff8000Paragon %d|r (you are Paragon %d). A look at what's ahead:", asc.need, asc.level))
+        end
+        for i, c in ipairs(cards) do
+            local a = asc.list[i]
+            if a then
+                c.icon:SetTexture("Interface\\Icons\\" .. (a.icon or "INV_Misc_QuestionMark"))
+                c.name:SetText(a.name)
+                c.ks:SetText("Grants: " .. (a.ks or ""))
+                c.text:SetText(a.text or "")
+                local mine = asc.chosen == i
+                if mine then
+                    c:SetBackdropColor(0.22, 0.13, 0.02, 0.95)
+                    c:SetBackdropBorderColor(1, 0.5, 0)
+                    c.state:SetText("|cffff8000Ascended|r")
+                    c.button:SetText("Give it up")
+                    c.button:SetScript("OnClick", function()
+                        local d = StaticPopup_Show("WORLDTIERS_ASCEND", "Give up " .. a.name .. "?")
+                        if d then d.data = 0 end
+                    end)
+                else
+                    c:SetBackdropColor(0.05, 0.05, 0.08, 0.9)
+                    c:SetBackdropBorderColor(0.5, 0.42, 0.25)
+                    c.state:SetText("")
+                    c.button:SetText("Ascend")
+                    c.button:SetScript("OnClick", function()
+                        local d = StaticPopup_Show("WORLDTIERS_ASCEND", "Ascend as " .. a.name .. "?" ..
+                            (asc.chosen > 0 and ("\n\n" .. (asc.list[asc.chosen] and asc.list[asc.chosen].name or "Your Ascendancy") .. " is given up.") or ""))
+                        if d then d.data = i end
+                    end)
+                end
+                if open then c.button:Enable() else c.button:Disable() end
+                c:Show()
+            else
+                c:Hide()
+            end
+        end
+    end
+
+    function WT.OpenAscendancy()
+        if f:IsShown() then f:Hide() else f:Show() end
+    end
+    f:SetScript("OnShow", function() Send("J") Refresh() end)
+
+    function WT.OnAscMessage(msg)
+        local cmd = msg:match("^(J[AE])|")
+        if not cmd then return false end
+        local p = Split(msg:sub(4), "|")
+        if cmd == "JA" then
+            asc.building = asc.building or {}
+            asc.building[tonumber(p[1]) or 0] = { name = p[2] or "?", icon = p[3], ks = p[4], text = p[5] }
+        else
+            asc.list, asc.building = asc.building or asc.list, nil
+            asc.chosen, asc.need, asc.level = tonumber(p[1]) or 0, tonumber(p[2]) or 150, tonumber(p[3]) or 0
+            if f:IsShown() then Refresh() end
+            if WT.RefreshAscButton then WT.RefreshAscButton() end
+        end
+        return true
+    end
+
+    -- the button on the board's side panel, under Glyphs
+    local b = CreateFrame("Button", "WorldTiersAscendancyButton", side, "UIPanelButtonTemplate")
+    Size(b, 76, 20)
+    b:SetPoint("TOPRIGHT", side, "TOPRIGHT", 0, -20)
+    b:SetText("Ascend")
+    b:SetScript("OnClick", function() WT.OpenAscendancy() end)
+    b:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:AddLine("Ascendancy", 1, 0.5, 0)
+        local a = asc.list[asc.chosen]
+        GameTooltip:AddLine(a and ("You are " .. a.name .. ".") or string.format("From Paragon %d: one of four for your class.", asc.need), 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    function WT.RefreshAscButton()
+        local a = asc.list[asc.chosen]
+        b:SetText(a and "Ascended" or "Ascend")
+    end
+    -- the level line makes room for the two buttons
+    levelText:SetWidth(140)
+    SLASH_WORLDTIERSASCEND1 = "/ascend"
+    SlashCmdList["WORLDTIERSASCEND"] = function() WT.OpenAscendancy() end
 end
 -- ---------------------------------------------------------------------------
 -- Item tooltips: the stats an item gives you at your World Tier
@@ -5164,7 +5335,7 @@ do
                 .. "better chests; four Map Fragments make a Legendary Map." },
             { "Paragon and Keystones", G .. "Paragon and Keystones" .. E .. "\n\n"
                 .. "- Experience past the level cap fills " .. W .. "Paragon levels" .. E .. ", without end. Each gives a point.\n"
-                .. "- Spend points on the " .. W .. "Paragon Board" .. E .. " (/paragon): eleven arms of stats. Walk out from the centre; "
+                .. "- Spend points on the " .. W .. "Paragon Board" .. E .. " (/paragon): fourteen arms, one for every stat, your class's most useful first. Walk out from the centre; "
                 .. "notables are big steps, and branches off them end in " .. W .. "keystones" .. E .. ".\n"
                 .. "- Keystones change how you play. A few can be switched on at once; " .. W .. "class keystones" .. E
                 .. " are built around your class's own spells.\n"
@@ -5172,6 +5343,8 @@ do
                 .. "- Your " .. W .. "Signature Keystone" .. E .. " (Overview tab, from level 10) is a class keystone that is always on, "
                 .. "outside the board's slots, long before Paragon.\n"
                 .. "- Keystones that strike by themselves run as auras: /wtaura (or the Overview button) switches them all on or off.\n"
+                .. "- " .. W .. "Ascendancies" .. E .. " (from Paragon 150, the Ascend button on the board or /ascend): choose one of four "
+                .. "for your class. Each grants three of your class keystones, always on and empowered, and powers of its own.\n"
                 .. "- " .. W .. "Glyphs" .. E .. ": each arm's second notable has a socket. A glyph boosts the matching nodes near it and "
                 .. "has a bonus of its own. 72 to find, from Tier Keys and raid or world bosses (more often at higher tiers); "
                 .. "they level up as you use them. The Glyphs button on the board shows your collection.\n"
@@ -5583,14 +5756,14 @@ end
 -- ---------------------------------------------------------------------------
 
 do
-    WT.CLIENT_VERSION = "0.25"
+    WT.CLIENT_VERSION = "0.26"
     local warned = false
     StaticPopupDialogs["WORLDTIERS_OUTDATED"] = {
         text = "|cffff9933Your IsDead WoW client files are out of date.|r\n\n%s\n\nClose the game and start it with |cffffffffIsDead Launcher|r: it updates everything by itself.",
         button1 = OKAY,
         timeout = 0, whileDead = 1, hideOnEscape = 1, showAlert = 1,
     }
-    -- "0.25" newer than "0.23.1"? part by part, as numbers
+    -- "0.26" newer than "0.23.1"? part by part, as numbers
     local function Newer(a, b)
         local pa, pb = {}, {}
         for n in a:gmatch("%d+") do pa[#pa + 1] = tonumber(n) end
@@ -5633,7 +5806,7 @@ events:SetScript("OnEvent", function(self, event, prefix, msg, channel, sender)
         if prefix == PREFIX and sender == UnitName("player") then
             if not WT.OnItemMessage(msg) and not WT.OnBarMessage(msg) and not WT.OnForgeMessage(msg)
                 and not WT.OnChampionMessage(msg) and not WT.OnKeyMessage(msg) and not WT.OnLoadoutMessage(msg)
-                and not WT.OnPouchMessage(msg) and not WT.OnSellMessage(msg) and not WT.OnGlyphMessage(msg) and not WT.OnVersionMessage(msg) and not WT.OnTreasureMessage(msg) and not WT.OnTransmogMessage(msg) and not WT.OnHubMessage(msg) then OnMessage(msg) end
+                and not WT.OnPouchMessage(msg) and not WT.OnSellMessage(msg) and not WT.OnGlyphMessage(msg) and not WT.OnVersionMessage(msg) and not WT.OnTreasureMessage(msg) and not WT.OnAscMessage(msg) and not WT.OnTransmogMessage(msg) and not WT.OnHubMessage(msg) then OnMessage(msg) end
         end
     elseif event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_LEVEL_UP" then
         Send("H")
