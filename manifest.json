@@ -1,5 +1,5 @@
 {
-  "version": "0.30",
+  "version": "0.31",
   "cacheVersion": "9e5869f23f5903ff",
   "realmlist": "26.148.25.63",
   "news": "",
@@ -761,13 +761,13 @@
     },
     {
       "path": "Interface/AddOns/WorldTiers/WorldTiers.lua",
-      "size": 288207,
-      "sha256": "03573ffd5c64d2dc229f7bea87e5bf3e3d2136dfd85a4eb881d7c42783c1e959"
+      "size": 304236,
+      "sha256": "7e42eaaa4d55a64038def9e28c19613fd4b4f0707371cdb507270fdb8c04a912"
     },
     {
       "path": "Interface/AddOns/WorldTiers/WorldTiers.toc",
       "size": 512,
-      "sha256": "83bf9f2f0d625e825f055306ab6ba1064e691bda9e1bcdf669606df0f284747c"
+      "sha256": "29a643f330cb9eb3d957e17835bcef6dacc07888ec34282f406d8e95ad31974a"
     },
     {
       "path": "IsDeadLauncher.ps1",

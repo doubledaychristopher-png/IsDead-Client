@@ -260,6 +260,10 @@ do
         function list:Set(lines, tail)
             local items = WT.CompactTotals(lines, tail)
             if #items == 0 then items = { { t = "Nothing yet. Each Paragon level is a point to spend." } } end
+            list:SetItems(items)
+        end
+        -- items ready made: { l, v } rows, { h } headers (h, and hc a colour), { t } text (gap: space above)
+        function list:SetItems(items)
             local y = 0
             for i, it in ipairs(items) do
                 local p = FS(i)
@@ -280,7 +284,12 @@ do
                     p.left:SetPoint("TOPLEFT", child, "TOPLEFT", 0, -y)
                     p.left:SetWidth(width)
                     p.left:SetText(it.h or it.t)
-                    if it.h then p.left:SetTextColor(1, 0.82, 0) else p.left:SetTextColor(1, 1, 1) end
+                    if it.h then
+                        local c = it.hc or { 1, 0.82, 0 }
+                        p.left:SetTextColor(c[1], c[2], c[3])
+                    else
+                        p.left:SetTextColor(1, 1, 1)
+                    end
                     p.right:Hide()
                     y = y + math.max(13, (p.left:GetHeight() or 13) + 2)
                 end
@@ -437,14 +446,17 @@ local function DrawLine(T, C, sx, sy, ex, ey, w)
     T:SetPoint("BOTTOMLEFT", C, "BOTTOMLEFT", cx - Bwid, cy - Bhgt)
     T:SetPoint("TOPRIGHT", C, "BOTTOMLEFT", cx + Bwid, cy + Bhgt)
 end
-
 -- ---------------------------------------------------------------------------
--- The character sheet's Paragon panel
+-- The character sheet's World Tiers panel, in three tabs (0.31):
+--   Paragon  the board's stats, extra effects, glyphs and keystones
+--   Gear     class sets, uniques, affix sets and runes you wear
+--   Powers   your Ascendancy and its Mastery, Signature Keystone, Tier Key, Gold Reserve
 -- ---------------------------------------------------------------------------
 
+do
 local panel = CreateFrame("Frame", "WorldTiersCharacterPanel", PaperDollFrame)
 panel:SetPoint("TOPLEFT", CharacterFrame, "TOPRIGHT", -34, -14)
-Size(panel, 210, 80)
+Size(panel, 246, 80)
 panel:SetBackdrop({
     bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
     edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -454,10 +466,26 @@ panel:SetBackdrop({
 panel:SetBackdropColor(0, 0, 0, 0.85)
 local panelTitle = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 panelTitle:SetPoint("TOPLEFT", 10, -10)
+
+-- the tabs
+local TABS = { "Paragon", "Gear", "Powers" }
+local tabButtons = {}
+local function CurrentTab()
+    local t = WorldTiersCharDB and WorldTiersCharDB.panelTab
+    return (t == 2 or t == 3) and t or 1
+end
+for i, name in ipairs(TABS) do
+    local b = CreateFrame("Button", "WorldTiersPanelTab" .. i, panel, "UIPanelButtonTemplate")
+    Size(b, 72, 18)
+    b:SetPoint("TOPLEFT", 8 + (i - 1) * 76, -28)
+    b:SetText(name)
+    tabButtons[i] = b
+end
+
 local PANEL_MAX = 330   -- taller than this and the list scrolls
-local panelList = WT.TotalsList(panel, 196)
-panelList.scroll:SetPoint("TOPLEFT", panelTitle, "BOTTOMLEFT", 0, -6)
-panelList.scroll:SetWidth(196)
+local panelList = WT.TotalsList(panel, 210)
+panelList.scroll:SetPoint("TOPLEFT", panel, "TOPLEFT", 10, -52)
+panelList.scroll:SetWidth(210)
 panelList.scroll:SetHeight(40)
 local panelButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
 Size(panelButton, 110, 20)
@@ -465,25 +493,135 @@ panelButton:SetPoint("BOTTOMLEFT", 8, 8)
 panelButton:SetText("Paragon Board")
 panelButton:SetScript("OnClick", function() frame:Show() end)
 
+-- colours: set pieces green, uniques orange (the same as their tooltips and glow)
+local SET_HEX, UNIQUE_HEX = "|cff1eff96", "|cffff8000"
+WT.SET_COLOR, WT.UNIQUE_COLOR = { 0.12, 1, 0.59 }, { 1, 0.5, 0 }
+
+-- the Gear tab: class sets, then uniques, affix sets, runes
+local function GearItems()
+    local items = {}
+    local by = { S = {}, U = {}, A = {}, R = {} }
+    for _, g in ipairs(WT.gearLines or {}) do
+        if by[g.kind] then table.insert(by[g.kind], g.text) end
+    end
+    if #by.S > 0 then
+        items[#items + 1] = { h = "Class Sets", hc = WT.SET_COLOR }
+        for _, line in ipairs(by.S) do
+            if line:match("%(%d/4%)$") then
+                items[#items + 1] = { t = SET_HEX .. line .. "|r", gap = true }
+            elseif line:find("^|cff808080") then
+                items[#items + 1] = { t = line .. "|r" }
+            else
+                items[#items + 1] = { t = "|cffb0ffd0" .. line .. "|r" }
+            end
+        end
+    end
+    if #by.U > 0 then
+        items[#items + 1] = { h = "Uniques", hc = WT.UNIQUE_COLOR, }
+        for _, line in ipairs(by.U) do
+            -- "[Unique: Tree] Name: what it does" -> the name in orange, then what it does
+            local name, what = line:match("^%[Unique: [^%]]+%] ([^:]+): (.*)$")
+            items[#items + 1] = { t = name and (UNIQUE_HEX .. name .. ":|r " .. what) or line, gap = true }
+        end
+    end
+    if #by.A > 0 then
+        items[#items + 1] = { h = "Affix Sets" }
+        for _, line in ipairs(by.A) do items[#items + 1] = { t = line, gap = true } end
+    end
+    if #by.R > 0 then
+        items[#items + 1] = { h = "Runes" }
+        for _, line in ipairs(by.R) do items[#items + 1] = { t = line, gap = true } end
+    end
+    if #items == 0 then
+        items[1] = { t = "No set pieces, uniques, affix sets or runes worn yet. Wear three pieces whose affixes share a family (Inferno, Frost...) for an affix set." }
+    end
+    return items
+end
+
+-- the Powers tab
+local function PowerItems()
+    local items = {}
+    local asc, sig
+    for _, p in ipairs(WT.powerLines or {}) do
+        if p.kind == "A" then asc = p.text elseif p.kind == "K" then sig = p.text end
+    end
+    items[#items + 1] = { h = "Ascendancy", hc = { 1, 0.5, 0 } }
+    if asc then
+        local f = Split(asc, "|")
+        local rank, picks = tonumber(f[2]) or 0, f[3] or ""
+        items[#items + 1] = { t = "|cffff8000" .. (f[1] or "?") .. "|r  -  Mastery " .. rank .. "/5" }
+        local chosen = {}
+        for r = 1, math.min(5, rank) do
+            local o = tonumber(picks:sub(r, r)) or 0
+            local m = WT.ASC_MASTERY and WT.ASC_MASTERY[r] and WT.ASC_MASTERY[r][o]
+            chosen[#chosen + 1] = m and m[1] or ("|cff808080rank " .. r .. ": not chosen|r")
+        end
+        if #chosen > 0 then items[#items + 1] = { t = "Mastery: " .. table.concat(chosen, ", ") } end
+    else
+        items[#items + 1] = { t = "|cff808080None chosen. From level 80: World Tiers window, Overview (or /ascend).|r" }
+    end
+    items[#items + 1] = { h = "Signature Keystone", hc = { 0.75, 0.5, 1 } }
+    items[#items + 1] = { t = sig and ("|cffbf80ff" .. sig .. "|r") or "|cff808080None chosen. From level 10: World Tiers window, Overview.|r" }
+    if WT.key and WT.key.text ~= "" then
+        items[#items + 1] = { h = "Tier Key", hc = { 0.64, 0.21, 0.93 } }
+        items[#items + 1] = { t = WT.key.text .. (WT.key.best > 0 and ("  (best +" .. WT.key.best .. ")") or "") }
+    end
+    if WT.reserve and #WT.reserve > 4 and WT.GoldFromCopperString then
+        items[#items + 1] = { h = "Gold Reserve" }
+        items[#items + 1] = { t = "|cffffd100" .. WT.GoldFromCopperString(WT.reserve) .. "|r" }
+    end
+    return items
+end
+
 local function RefreshPanel()
     local s = WT.state
     panelTitle:SetText(string.format("Paragon %d%s", s.level, s.free > 0 and string.format("  |cff20ff20(%d free)|r", s.free) or ""))
-    local tail = {}
-    if WT.reserve and #WT.reserve > 4 and WT.GoldFromCopperString then
-        tail[#tail + 1] = "|cffffd100Gold Reserve: " .. WT.GoldFromCopperString(WT.reserve) .. "|r"
+    local tab = CurrentTab()
+    for i, b in ipairs(tabButtons) do
+        if i == tab then b:LockHighlight() b:SetText("|cffffffff" .. TABS[i] .. "|r")
+        else b:UnlockHighlight() b:SetText(TABS[i]) end
     end
-    if WT.key and WT.key.text ~= "" then
-        tail[#tail + 1] = "|cffa335eeTier Key:|r " .. WT.key.text .. (WT.key.best > 0 and ("  (best +" .. WT.key.best .. ")") or "")
+    if tab == 1 then
+        panelList:Set(WT.totals)
+    elseif tab == 2 then
+        panelList:SetItems(GearItems())
+    else
+        panelList:SetItems(PowerItems())
     end
-    panelList:Set(WT.totals, tail)
     local h = math.min(PANEL_MAX, math.max(20, panelList.height))
     panelList.scroll:SetHeight(h)
+    panelList.scroll:SetVerticalScroll(0)
     panelList:Fit()
-    Size(panel, 246, h + 66)
+    Size(panel, 246, h + 90)
+end
+for i, b in ipairs(tabButtons) do
+    b:SetScript("OnClick", function()
+        WorldTiersCharDB = WorldTiersCharDB or {}
+        WorldTiersCharDB.panelTab = i
+        RefreshPanel()
+    end)
 end
 panel:SetScript("OnShow", function() Send("H") RefreshPanel() end)
 WT.RefreshPanel = RefreshPanel
 
+-- gear changed while the panel is open: ask again (once, a moment later)
+local gearWatch = CreateFrame("Frame")
+gearWatch:RegisterEvent("UNIT_INVENTORY_CHANGED")
+gearWatch:SetScript("OnEvent", function(self, event, unit)
+    if unit == "player" and panel:IsVisible() then
+        self.wait = 0.5
+        self:Show()
+    end
+end)
+gearWatch:Hide()
+gearWatch:SetScript("OnUpdate", function(self, elapsed)
+    self.wait = (self.wait or 0) - elapsed
+    if self.wait <= 0 then
+        self:Hide()
+        if panel:IsVisible() then Send("H") end
+    end
+end)
+end
 -- ---------------------------------------------------------------------------
 -- The board: eleven arms, drawn as spokes around the centre
 -- ---------------------------------------------------------------------------
@@ -1066,8 +1204,16 @@ OnMessage = function(msg)
         s.xp, s.xpNext, s.respec = tonumber(f[4]) or 0, tonumber(f[5]) or 1, tonumber(f[6]) or 0
     elseif cmd == "T" then
         WT.pendingTotals[#WT.pendingTotals + 1] = rest
+    elseif cmd == "TG" or cmd == "TP" then
+        -- the character window's Gear and Powers tabs (0.31): kind|text
+        local kind, text = rest:match("^(%a)|(.*)$")
+        local into = cmd == "TG" and "pendingGear" or "pendingPowers"
+        WT[into] = WT[into] or {}
+        if kind then table.insert(WT[into], { kind = kind, text = text }) end
     elseif cmd == "TE" then
         WT.totals, WT.pendingTotals = WT.pendingTotals, {}
+        WT.gearLines, WT.pendingGear = WT.pendingGear or {}, {}
+        WT.powerLines, WT.pendingPowers = WT.pendingPowers or {}, {}
         if not WT.receiving then
             WT.version = (WT.version or 0) + 1   -- free points change what is green
             RefreshSide()
@@ -2022,7 +2168,8 @@ local itemCache, itemPending, affixPending = {}, {}, {}
 -- common, uncommon, rare; then Primal, a rune, and a grey note
 local AFFIX_COLOR = { [0] = { 0.45, 0.65, 1 }, [1] = { 0.75, 0.45, 1 }, [2] = { 1, 0.5, 0 },
                       [3] = { 1, 0.19, 0.19 }, [4] = { 0.25, 0.88, 0.82 }, [5] = { 0.6, 0.6, 0.6 },
-                      [6] = { 0.9, 0.8, 0.5 } }   -- a class unique
+                      [6] = { 1, 0.5, 0 },           -- a class unique (orange)
+                      [7] = { 0.12, 1, 0.59 } }      -- a class set piece (green)
 WT.AFFIX_COLOR = AFFIX_COLOR
 
 local function Round(n) return string.format("%d", math.floor(n + 0.5)) end
@@ -2068,12 +2215,59 @@ local function Decorate(tip, info)
     if info.power ~= "" then
         tip:AddLine("Tier Power " .. info.power .. " damage", 1, 0.6, 0.2)
     end
+    local special
     for _, a in ipairs(info.affixes) do
         local c = AFFIX_COLOR[a.rarity] or AFFIX_COLOR[0]
-        tip:AddLine(a.text, c[1], c[2], c[3], true)
+        if a.rarity == 6 then
+            -- a class unique: its own block, the name in orange
+            special = special or "U"
+            local tree, uname, what = a.text:match("^%[Unique: ([^%]]+)%] ([^:]+): (.*)$")
+            tip:AddLine(" ")
+            tip:AddLine("Unique: " .. (uname or a.text), c[1], c[2], c[3])
+            if what then
+                tip:AddLine(what, 1, 0.85, 0.6, true)
+                tip:AddLine(tree, 0.55, 0.55, 0.55)
+            end
+        elseif a.rarity == 7 then
+            -- a class set piece: set~worn~two-piece~four-piece~whose
+            special = special == "U" and "B" or "S"
+            local f = {}
+            for part in string.gmatch(a.text .. "~", "(.-)~") do f[#f + 1] = part end
+            local worn = tonumber(f[2]) or 0
+            tip:AddLine(" ")
+            tip:AddLine(string.format("Set: %s (%d/4)", f[1] or "?", math.min(4, worn)), c[1], c[2], c[3])
+            for i, need in ipairs({ 2, 4 }) do
+                local on = worn >= need
+                tip:AddLine(string.format("(%d) %s", need, f[2 + i] or ""), on and 0.7 or 0.5, on and 1 or 0.5, on and 0.8 or 0.5, true)
+            end
+            if f[5] and f[5] ~= "" then tip:AddLine(f[5], 1, 0.3, 0.3) end
+        else
+            tip:AddLine(a.text, c[1], c[2], c[3], true)
+        end
+    end
+    if special then
+        -- the name in its colour, a tag on the top line, and a coloured border
+        local c = special == "U" and AFFIX_COLOR[6] or AFFIX_COLOR[7]
+        local left, right = _G[name .. "TextLeft1"], _G[name .. "TextRight1"]
+        if left then left:SetTextColor(c[1], c[2], c[3]) end
+        if right then
+            right:SetText(special == "U" and "UNIQUE" or special == "S" and "SET" or "UNIQUE  SET")
+            right:SetTextColor(c[1], c[2], c[3])
+            right:Show()
+        end
+        if tip.SetBackdropBorderColor then tip:SetBackdropBorderColor(c[1], c[2], c[3]) tip.wtBorder = true end
     end
     tip:Show()
 end
+-- a tooltip that showed one: back to the usual border
+local function ResetBorder(tip)
+    if tip.wtBorder and tip.SetBackdropBorderColor then
+        tip:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR and TOOLTIP_DEFAULT_COLOR.r or 1, TOOLTIP_DEFAULT_COLOR and TOOLTIP_DEFAULT_COLOR.g or 1,
+            TOOLTIP_DEFAULT_COLOR and TOOLTIP_DEFAULT_COLOR.b or 1)
+        tip.wtBorder = nil
+    end
+end
+WT.ResetTooltipBorder = ResetBorder
 
 -- Every tooltip that shows your items: the main one and the comparison ones
 -- ("Currently Equipped"), which the game fills from the item's base numbers too.
@@ -2115,7 +2309,7 @@ hooksecurefunc(GameTooltip, "SetInventoryItem", function(tip, unit, invSlot)
     Lookup(tip, bag, slot, GetInventoryItemLink("player", invSlot), function() tip:SetInventoryItem("player", invSlot) end)
 end)
 
-GameTooltip:HookScript("OnTooltipCleared", function(tip) tip.wtKey, tip.wtRedo, tip.wtDone = nil, nil, nil end)
+GameTooltip:HookScript("OnTooltipCleared", function(tip) tip.wtKey, tip.wtRedo, tip.wtDone = nil, nil, nil ResetBorder(tip) end)
 
 -- A comparison tooltip shows one of your equipped items: find which slot, and
 -- scale it like any other. Two of the same ring? The index says which.
@@ -2140,7 +2334,7 @@ local function HookCompare(tip)
             if self:IsShown() then self:SetHyperlinkCompareItem(link, index, shift, main) end
         end)
     end)
-    tip:HookScript("OnTooltipCleared", function(self) self.wtKey, self.wtRedo, self.wtDone = nil, nil, nil end)
+    tip:HookScript("OnTooltipCleared", function(self) self.wtKey, self.wtRedo, self.wtDone = nil, nil, nil ResetBorder(self) end)
 end
 for _, name in ipairs({ "ShoppingTooltip1", "ShoppingTooltip2", "ShoppingTooltip3", "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2", "ItemRefShoppingTooltip3" }) do
     HookCompare(_G[name])
@@ -2194,6 +2388,175 @@ itemEvents:SetScript("OnEvent", function(self, event, unit)
     if event == "UNIT_INVENTORY_CHANGED" and unit ~= "player" then return end
     itemCache = {}
 end)
+
+-- ---------------------------------------------------------------------------
+-- Uniques and set pieces glow (0.31): a pulsing border on them in your bags,
+-- the bank and the character window, orange for a unique and green for a
+-- set piece. The server says where they are (UG|bag,slot,kind;... UGE|),
+-- asked again when your bags change. And a moment when one drops: a toast,
+-- a sound (UF|kind|name|item).
+-- ---------------------------------------------------------------------------
+
+do
+    local COLORS = { U = { 1, 0.5, 0 }, S = { 0.12, 1, 0.59 }, B = { 1, 0.85, 0.2 } }
+    local where, building = {}, {}
+    local glows = {}
+
+    local function Glow(button)
+        if not button then return nil end
+        local g = button.wtGlow
+        if not g then
+            g = button:CreateTexture(nil, "OVERLAY")
+            g:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
+            g:SetBlendMode("ADD")
+            local w = (button:GetWidth() or 37)
+            Size(g, w * 1.9, w * 1.9)
+            g:SetPoint("CENTER", button, "CENTER", 0, 0)
+            g:Hide()
+            button.wtGlow = g
+            glows[#glows + 1] = g
+        end
+        return g
+    end
+
+    local function Paint(button, bag, slot)
+        if not button then return end
+        local kind = where[bag .. ":" .. slot]
+        if kind then
+            local g = Glow(button)
+            local c = COLORS[kind] or COLORS.S
+            g:SetVertexColor(c[1], c[2], c[3])
+            g:Show()
+        elseif button.wtGlow then
+            button.wtGlow:Hide()
+        end
+    end
+
+    -- the bags (and bank bags): the frame's id is the bag, each button's id its slot (from 1)
+    local function PaintContainer(frame)
+        if not frame or not frame:IsShown() then return end
+        local bag = frame:GetID()
+        local name = frame:GetName()
+        for i = 1, 36 do
+            local b = _G[name .. "Item" .. i]
+            if not b then break end
+            if b:IsShown() then Paint(b, bag, b:GetID() - 1) elseif b.wtGlow then b.wtGlow:Hide() end
+        end
+    end
+    local SLOTS = { "Head", "Neck", "Shoulder", "Shirt", "Chest", "Waist", "Legs", "Feet", "Wrist", "Hands",
+                    "Finger0", "Finger1", "Trinket0", "Trinket1", "Back", "MainHand", "SecondaryHand", "Ranged", "Tabard" }
+    local function PaintAll()
+        for i = 1, (NUM_CONTAINER_FRAMES or 13) do PaintContainer(_G["ContainerFrame" .. i]) end
+        for i = 1, 28 do
+            local b = _G["BankFrameItem" .. i]
+            if b and b:IsVisible() then Paint(b, -1, i - 1) end
+        end
+        for i, s in ipairs(SLOTS) do Paint(_G["Character" .. s .. "Slot"], -2, i - 1) end
+    end
+    WT.PaintGlows = PaintAll
+
+    if ContainerFrame_Update then hooksecurefunc("ContainerFrame_Update", function(frame) PaintContainer(frame) end) end
+    if PaperDollItemSlotButton_Update then
+        hooksecurefunc("PaperDollItemSlotButton_Update", function(button)
+            local id = button and button:GetID()
+            if id and id >= 1 and id <= 19 then Paint(button, -2, id - 1) end
+        end)
+    end
+    if BankFrameItemButton_Update then
+        hooksecurefunc("BankFrameItemButton_Update", function(button)
+            if button and not button.isBag and button:GetParent() == BankFrame then Paint(button, -1, button:GetID() - 1) end
+        end)
+    end
+
+    -- one gentle pulse for all of them
+    local pulse = CreateFrame("Frame")
+    local t = 0
+    pulse:SetScript("OnUpdate", function(self, elapsed)
+        t = t + elapsed
+        local a = 0.55 + 0.45 * math.sin(t * 3)
+        for _, g in ipairs(glows) do if g:IsShown() then g:SetAlpha(a) end end
+    end)
+
+    -- ask where they are: on login, when bags change (once a second at most), at the bank
+    local ask = CreateFrame("Frame")
+    ask:RegisterEvent("PLAYER_ENTERING_WORLD")
+    ask:RegisterEvent("BAG_UPDATE")
+    ask:RegisterEvent("UNIT_INVENTORY_CHANGED")
+    ask:RegisterEvent("BANKFRAME_OPENED")
+    ask:RegisterEvent("PLAYERBANKSLOTS_CHANGED")
+    ask:Hide()
+    ask:SetScript("OnEvent", function(self, event, unit)
+        if event == "UNIT_INVENTORY_CHANGED" and unit ~= "player" then return end
+        self.wait = event == "PLAYER_ENTERING_WORLD" and 3 or 1
+        self:Show()
+    end)
+    ask:SetScript("OnUpdate", function(self, elapsed)
+        self.wait = (self.wait or 0) - elapsed
+        if self.wait <= 0 then
+            self:Hide()
+            Send("UG")
+        end
+    end)
+
+    -- the toast
+    local toast = CreateFrame("Frame", "WorldTiersLootToast", UIParent)
+    Size(toast, 340, 64)
+    toast:SetPoint("TOP", UIParent, "TOP", 0, -170)
+    toast:SetFrameStrata("HIGH")
+    toast:SetBackdrop({ bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+                        tile = true, tileSize = 16, edgeSize = 16, insets = { left = 4, right = 4, top = 4, bottom = 4 } })
+    toast:SetBackdropColor(0.05, 0.04, 0.02, 0.92)
+    toast:Hide()
+    local tIcon = toast:CreateTexture(nil, "ARTWORK")
+    Size(tIcon, 40, 40)
+    tIcon:SetPoint("LEFT", 12, 0)
+    local tHead = toast:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    tHead:SetPoint("TOPLEFT", tIcon, "TOPRIGHT", 10, 0)
+    tHead:SetWidth(270)
+    tHead:SetJustifyH("LEFT")
+    local tText = toast:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    tText:SetPoint("TOPLEFT", tHead, "BOTTOMLEFT", 0, -4)
+    tText:SetWidth(270)
+    tText:SetJustifyH("LEFT")
+    toast:SetScript("OnUpdate", function(self, elapsed)
+        self.left = (self.left or 0) - elapsed
+        if self.left <= 0 then self:Hide() return end
+        self:SetAlpha(math.min(1, self.left))   -- fades out over the last second
+    end)
+    local function Toast(kind, name, item)
+        local c = COLORS[kind] or COLORS.S
+        tIcon:SetTexture(kind == "U" and "Interface\\Icons\\INV_Misc_Gem_Variety_02" or "Interface\\Icons\\INV_Chest_Plate02")
+        tHead:SetText(kind == "U" and "Unique found!" or "Set piece found!")
+        tHead:SetTextColor(c[1], c[2], c[3])
+        tText:SetText((item or "") .. "|n|cffbbbbbb" .. (kind == "U" and "carries " or "part of ") .. (name or "") .. "|r")
+        toast:SetBackdropBorderColor(c[1], c[2], c[3])
+        toast.left = 5
+        toast:SetAlpha(1)
+        toast:Show()
+        if PlaySoundFile then
+            PlaySoundFile(kind == "U" and "Sound\\Spells\\AchievmentSound1.wav" or "Sound\\Interface\\LevelUp.wav")
+        end
+    end
+    WT.LootToast = Toast
+
+    function WT.OnSpecialMessage(msg)
+        local cmd = msg:match("^(U[GF]E?)|")
+        if not cmd then return false end
+        local rest = msg:sub(#cmd + 2)
+        if cmd == "UG" then
+            for bag, slot, kind in string.gmatch(rest, "(%-?%d+),(%d+),(%a);") do
+                building[bag .. ":" .. slot] = kind
+            end
+        elseif cmd == "UGE" then
+            where, building = building, {}
+            PaintAll()
+        elseif cmd == "UF" then
+            local f = Split(rest, "|")
+            Toast(f[1], f[2], f[3])
+        end
+        return true
+    end
+end
 
 -- ---------------------------------------------------------------------------
 -- The Paragon experience bar: at the level cap, where the experience bar was
@@ -5537,7 +5900,10 @@ do
             { "Gear and the Forge", G .. "Gear, affixes and the Forge" .. E .. "\n\n"
                 .. "- Gear is stamped with the tier it was earned at, and grows with it. Your tooltip shows the item level it counts as.\n"
                 .. "- Dropped gear rolls " .. W .. "affixes" .. E .. ": extra lines that grow with its tier. Rare drops can carry a " .. W .. "class unique" .. E
-                .. " that changes one of your spells, or come out " .. W .. "Primal" .. E .. " (perfect affixes).\n"
+                .. " that changes one of your spells (orange), or come out " .. W .. "Primal" .. E .. " (perfect affixes).\n"
+                .. "- " .. W .. "Class sets" .. E .. " (green): three for each class, one for each talent tree. A rare-or-better Head, Shoulders, "
+                .. "Chest, Hands, Legs or Feet can drop as a set piece; two pieces give the set's first bonus, four its second. "
+                .. "Uniques and set pieces glow in your bags; the character window's Gear tab shows what you wear.\n"
                 .. "- Legendaries and crafted rare-or-better gear keep pace with your level.\n"
                 .. "- The " .. W .. "Forge" .. E .. " (/forge) reforges a piece up to your current tier and rerolls its affixes, all at once "
                 .. "or one line at a time. It costs gold, Essence and Shards.\n"
@@ -5973,7 +6339,7 @@ end
 -- ---------------------------------------------------------------------------
 
 do
-    WT.CLIENT_VERSION = "0.30"
+    WT.CLIENT_VERSION = "0.31"
     local warned = false
     StaticPopupDialogs["WORLDTIERS_OUTDATED"] = {
         text = "|cffff9933Your IsDead WoW client files are out of date.|r\n\n%s\n\nClose the game and start it with |cffffffffIsDead Launcher|r: it updates everything by itself.",
@@ -6023,7 +6389,7 @@ events:SetScript("OnEvent", function(self, event, prefix, msg, channel, sender)
         if prefix == PREFIX and sender == UnitName("player") then
             if not WT.OnItemMessage(msg) and not WT.OnBarMessage(msg) and not WT.OnForgeMessage(msg)
                 and not WT.OnChampionMessage(msg) and not WT.OnKeyMessage(msg) and not WT.OnLoadoutMessage(msg)
-                and not WT.OnPouchMessage(msg) and not WT.OnSellMessage(msg) and not WT.OnGlyphMessage(msg) and not WT.OnVersionMessage(msg) and not WT.OnTreasureMessage(msg) and not WT.OnAscMessage(msg) and not WT.OnTransmogMessage(msg) and not WT.OnHubMessage(msg) then OnMessage(msg) end
+                and not WT.OnPouchMessage(msg) and not WT.OnSellMessage(msg) and not WT.OnGlyphMessage(msg) and not WT.OnVersionMessage(msg) and not WT.OnTreasureMessage(msg) and not WT.OnAscMessage(msg) and not WT.OnTransmogMessage(msg) and not WT.OnHubMessage(msg) and not WT.OnSpecialMessage(msg) then OnMessage(msg) end
         end
     elseif event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_LEVEL_UP" then
         Send("H")
