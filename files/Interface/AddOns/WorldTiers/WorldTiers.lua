@@ -2045,7 +2045,8 @@ function WT.MoneyLine()
     if #WT.reserve > 4 then line = line .. "   |cffffd100Reserve: " .. WT.GoldFromCopperString(WT.reserve) .. "|r" end
     return line
 end
-local forgeData = { items = {}, order = {}, tier = 0, tierName = "", money = 0, runes = {}, mats = {} }
+local forgeData = { items = {}, order = {}, tier = 0, tierName = "", money = 0, runes = {}, mats = {}, codex = {}, trees = {} }
+local forgeMode = "gear"   -- or "codex"
 local pendingForge = nil
 local forgeOffset, forgeSelected = 0, nil
 
@@ -2117,8 +2118,21 @@ forgeTitle:SetText("The Forge")
 local forgeClose = CreateFrame("Button", nil, forge, "UIPanelCloseButton")
 forgeClose:SetPoint("TOPRIGHT", -6, -6)
 
+-- Gear | Power Codex
+local function ForgeTab(text, x)
+    local b = CreateFrame("Button", nil, forge, "UIPanelButtonTemplate")
+    Size(b, 104, 22)
+    b:SetPoint("TOPLEFT", x, -34)
+    b:SetText(text)
+    return b
+end
+local gearTab = ForgeTab("Gear", 18)
+local codexTab = ForgeTab("Power Codex", 126)
+
 local forgeTier = forge:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-forgeTier:SetPoint("TOPLEFT", 22, -42)
+forgeTier:SetPoint("LEFT", codexTab, "RIGHT", 12, 0)
+forgeTier:SetPoint("RIGHT", forge, "RIGHT", -22, 0)
+forgeTier:SetJustifyH("LEFT")
 
 local forgeMoney = forge:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 forgeMoney:SetPoint("BOTTOMLEFT", 24, 22)
@@ -2215,6 +2229,21 @@ noAffix:SetPoint("TOPLEFT", affixHeader, "BOTTOMLEFT", 0, -6)
 noAffix:SetWidth(340)
 noAffix:SetJustifyH("LEFT")
 
+-- the unique power: to the Codex, or one from it
+local uniqueText = detail:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+uniqueText:SetPoint("BOTTOMLEFT", 0, 126)
+uniqueText:SetWidth(196)
+uniqueText:SetJustifyH("LEFT")
+local imprintButton = CreateFrame("Button", nil, detail, "UIPanelButtonTemplate")
+Size(imprintButton, 70, 20)
+imprintButton:SetPoint("BOTTOMRIGHT", -8, 124)
+imprintButton:SetText("Imprint")
+local extractButton = CreateFrame("Button", nil, detail, "UIPanelButtonTemplate")
+Size(extractButton, 70, 20)
+extractButton:SetPoint("RIGHT", imprintButton, "LEFT", -4, 0)
+extractButton:SetText("To Codex")
+local imprintMenu = CreateFrame("Frame", "WorldTiersImprintMenu", UIParent, "UIDropDownMenuTemplate")
+
 -- the rune socket
 local runeText = detail:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 runeText:SetPoint("BOTTOMLEFT", 0, 96)
@@ -2237,6 +2266,98 @@ local rerollButton = CreateFrame("Button", nil, detail, "UIPanelButtonTemplate")
 Size(rerollButton, 340, 26)
 rerollButton:SetPoint("BOTTOMLEFT", 0, 0)
 
+-- ---------------- the Power Codex page ----------------
+local codexPage = CreateFrame("Frame", nil, forge)
+codexPage:SetPoint("TOPLEFT", 18, -60)
+Size(codexPage, 686, ROWS * ROW_H)
+codexPage:Hide()
+local codexCols, codexCards = {}, {}
+for col = 1, 4 do
+    local h = codexPage:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    h:SetPoint("TOPLEFT", (col - 1) * 172 + 4, -2)
+    h:SetWidth(160)
+    h:SetJustifyH("LEFT")
+    codexCols[col] = h
+    for row = 1, 3 do
+        local c = CreateFrame("Frame", nil, codexPage)
+        Size(c, 164, 112)
+        c:SetPoint("TOPLEFT", (col - 1) * 172, -22 - (row - 1) * 118)
+        c:SetBackdrop({ bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+                        tile = true, tileSize = 16, edgeSize = 12, insets = { left = 3, right = 3, top = 3, bottom = 3 } })
+        c.name = c:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        c.name:SetPoint("TOPLEFT", 8, -8)
+        c.name:SetWidth(148)
+        c.name:SetJustifyH("LEFT")
+        c.text = c:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        c.text:SetPoint("TOPLEFT", c.name, "BOTTOMLEFT", 0, -4)
+        c.text:SetWidth(148)
+        c.text:SetHeight(58)
+        c.text:SetJustifyH("LEFT")
+        c.text:SetJustifyV("TOP")
+        c.status = c:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+        c.status:SetPoint("BOTTOMLEFT", 8, 8)
+        c.status:SetWidth(148)
+        c.status:SetJustifyH("LEFT")
+        c:EnableMouse(true)
+        c:SetScript("OnEnter", function(self)
+            if not self.power then return end
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:AddLine(self.power.name, 0.9, 0.8, 0.5)
+            GameTooltip:AddLine(self.power.text, 1, 1, 1, true)
+            GameTooltip:AddLine(self.power.known and string.format("In your Codex at %d%%. Imprint it from the Gear tab.", self.power.roll)
+                or "Not found yet. Uniques drop from rare or better gear at World Tier III and up; extract one here to keep its power.", 0.6, 0.8, 1, true)
+            GameTooltip:Show()
+        end)
+        c:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        codexCards[#codexCards + 1] = c
+    end
+end
+local codexNote = codexPage:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+codexNote:SetPoint("BOTTOMLEFT", 2, 6)
+codexNote:SetWidth(680)
+codexNote:SetJustifyH("LEFT")
+
+local function RefreshCodex()
+    local byTree = { [0] = {}, {}, {}, {} }
+    local found = 0
+    for _, p in ipairs(forgeData.codex) do
+        table.insert(byTree[p.tree] or byTree[0], p)
+        if p.known then found = found + 1 end
+    end
+    for col = 1, 4 do
+        local tree = col - 1
+        local have = 0
+        for _, p in ipairs(byTree[tree]) do if p.known then have = have + 1 end end
+        codexCols[col]:SetText(string.format("%s  |cff888888%d/%d|r", forgeData.trees[tree] or "", have, #byTree[tree]))
+        for row = 1, 3 do
+            local c, p = codexCards[(col - 1) * 3 + row], byTree[tree][row]
+            c.power = p
+            if p then
+                c.name:SetText(p.name)
+                c.text:SetText(p.text)
+                if p.known then
+                    c.name:SetTextColor(0.9, 0.8, 0.5)
+                    c.text:SetTextColor(1, 1, 1)
+                    c.status:SetText(string.format("|cff20ff20In your Codex|r  -  %d%%", p.roll))
+                    c:SetBackdropColor(0.16, 0.12, 0.04, 0.9)
+                    c:SetBackdropBorderColor(0.9, 0.8, 0.5)
+                else
+                    c.name:SetTextColor(0.55, 0.55, 0.55)
+                    c.text:SetTextColor(0.5, 0.5, 0.5)
+                    c.status:SetText("Not found yet")
+                    c:SetBackdropColor(0.05, 0.05, 0.07, 0.85)
+                    c:SetBackdropBorderColor(0.35, 0.35, 0.35)
+                end
+                c:Show()
+            else
+                c:Hide()
+            end
+        end
+    end
+    codexNote:SetText(string.format("|cffe6cc80%d of %d|r powers found, for every character of your account. On the Gear tab, |cffffffffTo Codex|r "
+        .. "extracts a unique (the piece is destroyed) and |cffffffffImprint|r puts a power from here onto any rare or better piece.", found, #forgeData.codex))
+end
+
 StaticPopupDialogs["WORLDTIERS_FORGE"] = {
     text = "%s",
     button1 = ACCEPT, button2 = CANCEL,
@@ -2254,13 +2375,23 @@ local function ItemName(it)
 end
 
 RefreshForge = function()
-    forgeTier:SetText(string.format("Your World Tier: |cffff9933%s|r. A piece reforges up to 3 tiers above where it dropped, with Essence of that tier.", forgeData.tierName))
+    forgeTier:SetText(string.format("World Tier |cffff9933%s|r. A piece reforges up to 3 tiers above where it dropped.", forgeData.tierName))
+    if forgeMode == "codex" then gearTab:UnlockHighlight() codexTab:LockHighlight() else codexTab:UnlockHighlight() gearTab:LockHighlight() end
     forgeMoney:SetText(WT.MoneyLine())
     local mats = {}
     for _, m in ipairs(forgeData.mats) do
         mats[#mats + 1] = string.format("|cffa335ee%s|r %d%s", m.band, m.essence, m.shards > 0 and string.format(" (+%d shards)", m.shards) or "")
     end
     forgeMats:SetText(#mats > 0 and ("Essence: " .. table.concat(mats, ",  ")) or "|cff888888No Essence yet: bosses at World Tier I and up drop it (raids Essence, dungeons Shards).|r")
+    if forgeMode == "codex" then
+        list:Hide()
+        detail:Hide()
+        codexPage:Show()
+        RefreshCodex()
+        return
+    end
+    codexPage:Hide()
+    list:Show()
     local order = forgeData.order
     if not forgeSelected or not forgeData.items[forgeSelected] then forgeSelected = order[1] end
     for i = 1, ROWS do
@@ -2315,14 +2446,18 @@ RefreshForge = function()
         runeButton:Disable()
     end
 
+    -- the unique power has its own row below
+    local shown = {}
+    for idx, a in ipairs(it.affixes) do
+        if a.rarity ~= 6 then shown[#shown + 1] = { a = a, idx = idx - 1 } end
+    end
     for i = 1, 4 do
-        local row, a = affixRows[i], it.affixes[i]
+        local row, a, idx = affixRows[i], shown[i] and shown[i].a, shown[i] and shown[i].idx
         if a then
             local c = WT.AFFIX_COLOR[a.rarity] or WT.AFFIX_COLOR[0]
             row.text:SetText(a.text)
             row.text:SetTextColor(c[1], c[2], c[3])
             row.cost:SetText(Money(it.rerollOne))
-            local idx = i - 1
             row.button:SetScript("OnClick", function()
                 Confirm(string.format("Reroll \"%s\" on %s for %s?\n\nIt becomes another affix of the same kind.", a.text, ItemName(it), Money(it.rerollOne)),
                     string.format("F1:%d:%d:%d", it.bag, it.slot, idx))
@@ -2334,7 +2469,49 @@ RefreshForge = function()
             row:Hide()
         end
     end
-    if #it.affixes == 0 then
+    -- the unique power
+    local u = it.unique
+    local known = {}
+    for _, p in ipairs(forgeData.codex) do if p.known then known[#known + 1] = p end end
+    if u then
+        uniqueText:SetText(string.format("|cffe6cc80%s|r |cff888888(%d%%)|r", u.name or "Unique power", u.roll))
+    else
+        uniqueText:SetText(#forgeData.codex > 0 and "|cff888888No unique power|r" or "")
+    end
+    if u and it.bag ~= -2 then
+        extractButton:Enable()
+        extractButton:SetScript("OnClick", function()
+            Confirm(string.format("Extract |cffe6cc80%s|r into your Power Codex?\n\n%s is destroyed. The power stays in your Codex for every character "
+                .. "of your account, at the best roll you have found.", u.name or "its power", ItemName(it)), string.format("FK:%d:%d", it.bag, it.slot))
+        end)
+    else
+        extractButton:Disable()
+    end
+    if it.canTake and #known > 0 then
+        imprintButton:Enable()
+        imprintButton:SetScript("OnClick", function(self)
+            local cost = Money(it.imprintGold) .. (it.imprintMats ~= "" and (" and " .. it.imprintMats) or "")
+            local menu = { { text = "Imprint onto " .. ItemName(it) .. ": " .. cost, isTitle = true, notCheckable = true } }
+            for _, p in ipairs(known) do
+                menu[#menu + 1] = { text = string.format("%s (%d%%)", p.name, p.roll), notCheckable = true,
+                    tooltipTitle = p.name, tooltipText = p.text, func = function()
+                        if not it.imprintPay then
+                            UIErrorsFrame:AddMessage("Not enough Essence: " .. it.imprintMats .. ".", 1, 0.2, 0.2)
+                            return
+                        end
+                        Confirm(string.format("Imprint |cffe6cc80%s|r onto %s for %s?%s", p.name, ItemName(it), cost,
+                            u and ("\n\nIt replaces " .. (u.name or "its unique power") .. ".") or ""), string.format("FP:%d:%d:%d", it.bag, it.slot, p.index))
+                    end }
+            end
+            menu[#menu + 1] = { text = CANCEL, notCheckable = true }
+            EasyMenu(menu, imprintMenu, self, 0, 0, "MENU")
+        end)
+    else
+        imprintButton:Disable()
+    end
+    if #forgeData.codex == 0 then imprintButton:Hide() extractButton:Hide() else imprintButton:Show() extractButton:Show() end
+
+    if #shown == 0 then
         noAffix:SetText(it.rerollAll > 0 and "No affixes yet. Roll some below." or "Only uncommon (green) or better gear carries affixes.")
         noAffix:Show()
     else
@@ -2386,7 +2563,7 @@ function WT.OnForgeMessage(msg)
         forge:Show()
     elseif cmd == "FB" then
         local f = Split(rest, "|")
-        pendingForge = { items = {}, order = {}, money = tonumber(f[1]) or 0, runes = {}, mats = {} }
+        pendingForge = { items = {}, order = {}, money = tonumber(f[1]) or 0, runes = {}, mats = {}, codex = {}, trees = {} }
         if f[2] then WT.SetReserve(f[2]) end
     elseif cmd == "FI" and pendingForge then
         local f = Split(rest, "|")
@@ -2401,6 +2578,23 @@ function WT.OnForgeMessage(msg)
         local f = Split(rest, "|")
         local it = pendingForge.items[f[1] .. ":" .. f[2]]
         if it then table.insert(it.affixes, { rarity = tonumber(f[4]) or 0, text = f[5] or "" }) end
+    elseif cmd == "FU" and pendingForge then
+        -- FU|bag|slot|unique(-1)|roll%|canTake|imprintGold|materials|canPay
+        local f = Split(rest, "|")
+        local it = pendingForge.items[f[1] .. ":" .. f[2]]
+        if it then
+            local u = tonumber(f[3]) or -1
+            it.unique = u >= 0 and { index = u, roll = tonumber(f[4]) or 0 } or nil
+            it.canTake, it.imprintGold, it.imprintMats, it.imprintPay = f[5] == "1", tonumber(f[6]) or 0, f[7] or "", f[8] == "1"
+        end
+    elseif cmd == "FT" and pendingForge then
+        local f = Split(rest, "|")
+        pendingForge.trees = { [0] = f[1], f[2], f[3], f[4] }
+    elseif cmd == "FQ" and pendingForge then
+        -- FQ|index|tree|name|known|roll%|text
+        local f = Split(rest, "|")
+        table.insert(pendingForge.codex, { index = tonumber(f[1]) or 0, tree = tonumber(f[2]) or 0, name = f[3] or "?",
+            known = f[4] == "1", roll = tonumber(f[5]) or 100, text = f[6] or "" })
     elseif cmd == "FN" and pendingForge then
         local f = Split(rest, "|")
         local id = tonumber(f[1]) or 0
@@ -2412,6 +2606,19 @@ function WT.OnForgeMessage(msg)
     elseif cmd == "FE" and pendingForge then
         local f = Split(rest, "|")
         pendingForge.tier, pendingForge.tierName = tonumber(f[1]) or 0, f[2] or ""
+        -- each item's unique by name (the Codex list knows every power of your class)
+        local names = {}
+        for _, p in ipairs(pendingForge.codex) do names[p.index] = p.name end
+        for _, it in pairs(pendingForge.items) do
+            if it.unique then
+                it.unique.name = names[it.unique.index]
+                if not it.unique.name then
+                    for _, a in ipairs(it.affixes) do
+                        if a.rarity == 6 then it.unique.name = (a.text:match("%] ([^:]+):") or "Unique power") end
+                    end
+                end
+            end
+        end
         forgeData, pendingForge = pendingForge, nil
         forgeOffset = math.min(forgeOffset, math.max(0, #forgeData.order - ROWS))
         if forge:IsShown() then RefreshForge() end
@@ -2420,6 +2627,9 @@ function WT.OnForgeMessage(msg)
     end
     return true
 end
+
+gearTab:SetScript("OnClick", function() forgeMode = "gear" RefreshForge() end)
+codexTab:SetScript("OnClick", function() forgeMode = "codex" RefreshForge() end)
 
 forge:SetScript("OnShow", function()
     PlaySound("igCharacterInfoOpen")
@@ -2435,6 +2645,13 @@ WT.forgeMoneyRefresh = function() if forge:IsShown() then forgeMoney:SetText(WT.
 SLASH_WORLDTIERSFORGE1 = "/forge"
 SlashCmdList["WORLDTIERSFORGE"] = function()
     if forge:IsShown() then forge:Hide() else forge:Show() end
+end
+
+-- /codex: the Forge, on its Power Codex tab
+SLASH_WORLDTIERSCODEX1 = "/codex"
+SlashCmdList["WORLDTIERSCODEX"] = function()
+    forgeMode = "codex"
+    if forge:IsShown() then RefreshForge() else forge:Show() end
 end
 
 -- ---------------------------------------------------------------------------
@@ -4640,8 +4857,8 @@ do
         events:SetAllPoints()
         events:Hide()
         hub.pages.events = events
-        local zoneS = Section(20, -72, 390, 300, "Empowered Zone", events)
-        local dungS = Section(418, -72, 382, 300, "Empowered Dungeon", events)
+        local zoneS = Section(20, -72, 390, 208, "Empowered Zone", events)
+        local dungS = Section(418, -72, 382, 208, "Empowered Dungeon", events)
         local function EventBlock(s, icon)
             local b = {}
             b.icon = s:CreateTexture(nil, "ARTWORK")
@@ -4654,15 +4871,28 @@ do
             b.effects = Text(s, "GameFontHighlightSmall", 14, -100, s:GetWidth() - 28)
             b.effects:SetTextColor(0.6, 1, 0.6)
             b.bar = Bar(s, s:GetWidth() - 28, 18)
-            b.bar:SetPoint("TOPLEFT", 14, -196)
+            b.bar:SetPoint("TOPLEFT", 14, -150)
             b.bar:SetStatusBarColor(1, 0.6, 0.1)
-            b.reward = Text(s, "GameFontHighlightSmall", 14, -224, s:GetWidth() - 28)
+            b.reward = Text(s, "GameFontHighlightSmall", 14, -176, s:GetWidth() - 28)
             b.reward:SetTextColor(0.85, 0.85, 0.85)
             return b
         end
         local zb = EventBlock(zoneS, "INV_Misc_Map_01")
         local db = EventBlock(dungS, "INV_Misc_Key_14")
-        local aboutS = Section(20, -380, 780, 152, "How events work", events)
+        -- this week's modifier, in every dungeon and raid
+        local weekS = Section(20, -288, 780, 138, "This week in dungeons and raids", events)
+        local wk = {}
+        wk.icon = weekS:CreateTexture(nil, "ARTWORK")
+        Size(wk.icon, 44, 44)
+        wk.icon:SetPoint("TOPLEFT", 14, -40)
+        wk.name = Text(weekS, "GameFontNormalLarge", 66, -42, 690)
+        wk.name:SetTextColor(1, 0.6, 0.2)
+        wk.challenge = Text(weekS, "GameFontHighlightSmall", 66, -64, 690)
+        wk.reward = Text(weekS, "GameFontHighlightSmall", 66, -82, 690)
+        wk.reward:SetTextColor(0.6, 1, 0.6)
+        wk.next = Text(weekS, "GameFontDisableSmall", 14, -112, 750)
+
+        local aboutS = Section(20, -434, 780, 98, "How events work", events)
         local about = Text(aboutS, "GameFontHighlightSmall", 14, -40, 750)
         about:SetText("Every hour a new zone and a new dungeon are empowered for each band of ten levels: these are the ones for "
             .. "your level. Go there for faster levelling, more Champions and Treasure Goblins, extra boss loot, and a reward chest "
@@ -4672,6 +4902,24 @@ do
         hub.RefreshEvents = function()
             local e = hub.events
             local x = e.effects or {}
+            local w = e.week
+            if w and w.name ~= "" then
+                wk.icon:SetTexture("Interface\\Icons\\" .. (w.icon or "INV_Misc_QuestionMark"))
+                wk.icon:Show()
+                wk.name:SetText(w.name)
+                wk.challenge:SetText(w.challenge or "")
+                wk.reward:SetText("Reward: " .. (w.reward or ""))
+                weekS.note:SetText("Changes in " .. Duration(w.left or 0))
+                wk.next:SetText(string.format("Next week: |T%s:14|t %s - %s %s", "Interface\\Icons\\" .. (w.nextIcon or "INV_Misc_QuestionMark"),
+                    w.nextName or "?", w.nextChallenge or "", w.nextReward and ("(" .. w.nextReward .. ")") or ""))
+            else
+                wk.icon:Hide()
+                wk.name:SetText("No weekly modifier on this realm")
+                wk.challenge:SetText("")
+                wk.reward:SetText("")
+                wk.next:SetText("")
+                weekS.note:SetText("")
+            end
             if e.zone and e.zone ~= "" then
                 zb.name:SetText(e.zone)
                 zb.sub:SetText(string.format("For %s  -  %d min left this hour", e.band or "", e.minutes or 0))
@@ -4741,7 +4989,9 @@ do
                 .. "- The " .. W .. "Forge" .. E .. " (/forge) reforges a piece up to your current tier and rerolls its affixes, all at once "
                 .. "or one line at a time. It costs gold, Essence and Shards.\n"
                 .. "- " .. W .. "Runes" .. E .. " drop from bosses at higher tiers: forge one into a piece for a special effect.\n"
-                .. "- Wearing several pieces from the same affix family gives a set bonus." },
+                .. "- Wearing several pieces from the same affix family gives a set bonus.\n"
+                .. "- The " .. W .. "Power Codex" .. E .. " (the Forge's second tab, or /codex): extract a class unique there (the piece is "
+                .. "destroyed) to keep its power for your whole account, then imprint it onto any rare or better piece." },
             { "Paragon and Keystones", G .. "Paragon and Keystones" .. E .. "\n\n"
                 .. "- Experience past the level cap fills " .. W .. "Paragon levels" .. E .. ", without end. Each gives a point.\n"
                 .. "- Spend points on the " .. W .. "Paragon Board" .. E .. " (/paragon): eleven arms of stats. Walk out from the centre; "
@@ -4779,7 +5029,9 @@ do
                 .. G .. "Events" .. E .. "\n\n"
                 .. "- Every hour, one zone and one dungeon for your level range are " .. W .. "empowered" .. E .. ": more experience, more "
                 .. "Champions and Treasure Goblins, an extra boss loot roll, and a reward chest for a kill goal or a clear.\n"
-                .. "- The Events tab shows yours and the minutes left." },
+                .. "- The Events tab shows yours and the minutes left.\n"
+                .. "- Every week one " .. W .. "modifier" .. E .. " is on in all dungeons and raids: a challenge with a reward "
+                .. "(Events tab, and said in chat as you go in)." },
             { "Champions and Goblins", G .. "Champions and Treasure Goblins" .. E .. "\n\n"
                 .. "- " .. W .. "Champions" .. E .. " are bigger, stronger creatures with an affix (hover over one to see it). "
                 .. "They hit harder and drop gear for your level.\n"
@@ -5000,7 +5252,7 @@ do
 
     -- WW| WH| WK| WP| WR| WS| WO| WE| WZ| WC|
     function WT.OnHubMessage(msg)
-        local cmd = msg:match("^(W[WHKPRSOEZC])|") or msg:match("^(V[RTO])|") or msg:match("^(E[ZDX])|")
+        local cmd = msg:match("^(W[WHKPRSOEZCV])|") or msg:match("^(V[RTO])|") or msg:match("^(E[ZDXWN])|")
         if not cmd then return false end
         local f = Split(msg:sub(4), "|")
         if cmd == "WW" then
@@ -5033,6 +5285,18 @@ do
         elseif cmd == "ED" then
             local e = hub.events
             e.dungeon, e.minutes, e.dungeonDone = f[1], tonumber(f[2]) or e.minutes, f[3] == "1"
+        elseif cmd == "EW" then
+            -- EW|name|icon|challenge|reward|secondsLeft|nextName|nextIcon   EN|nextChallenge|nextReward
+            hub.events.week = { name = f[1] or "", icon = f[2], challenge = f[3], reward = f[4], left = tonumber(f[5]) or 0,
+                                nextName = f[6], nextIcon = f[7] }
+        elseif cmd == "EN" then
+            if hub.events.week then hub.events.week.nextChallenge, hub.events.week.nextReward = f[1], f[2] end
+        elseif cmd == "WV" then
+            -- Volatile: a creature next to you is about to burst
+            if RaidNotice_AddMessage and RaidWarningFrame then
+                RaidNotice_AddMessage(RaidWarningFrame, "|cffff6020Volatile!|r Move away from the body.", ChatTypeInfo and ChatTypeInfo["RAID_WARNING"] or { r = 1, g = 0.3, b = 0.1 })
+            end
+            PlaySound("RaidWarning")
         elseif cmd == "EX" then
             hub.events.effects = { xp = f[1], champ = f[2], goblin = f[3], rolls = f[4] }
         elseif cmd == "WK" then
@@ -5149,19 +5413,30 @@ end
 -- ---------------------------------------------------------------------------
 
 do
-    WT.CLIENT_VERSION = "0.23"
+    WT.CLIENT_VERSION = "0.24"
     local warned = false
     StaticPopupDialogs["WORLDTIERS_OUTDATED"] = {
         text = "|cffff9933Your IsDead WoW client files are out of date.|r\n\n%s\n\nClose the game and start it with |cffffffffIsDead Launcher|r: it updates everything by itself.",
         button1 = OKAY,
         timeout = 0, whileDead = 1, hideOnEscape = 1, showAlert = 1,
     }
+    -- "0.24" newer than "0.23.1"? part by part, as numbers
+    local function Newer(a, b)
+        local pa, pb = {}, {}
+        for n in a:gmatch("%d+") do pa[#pa + 1] = tonumber(n) end
+        for n in b:gmatch("%d+") do pb[#pb + 1] = tonumber(n) end
+        for i = 1, math.max(#pa, #pb) do
+            local x, y = pa[i] or 0, pb[i] or 0
+            if x ~= y then return x > y end
+        end
+        return false
+    end
     function WT.OnVersionMessage(msg)
         local want, probe = msg:match("^CV|([^|]*)|(%d*)")
         if not want then return false end
         if warned then return true end
         local why
-        if want ~= "" and want ~= WT.CLIENT_VERSION then
+        if want ~= "" and Newer(want, WT.CLIENT_VERSION) then   -- an addon newer than the server is fine
             why = string.format("Your World Tiers addon is %s; the server is on %s.", WT.CLIENT_VERSION, want)
         elseif tonumber(probe) and tonumber(probe) > 0 and not GetSpellInfo(tonumber(probe)) then
             why = "Your patch file (patch-enUS-W.MPQ) is older than the server's."
