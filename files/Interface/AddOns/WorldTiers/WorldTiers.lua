@@ -1717,14 +1717,15 @@ do
 end
 
 -- ---------------------------------------------------------------------------
--- Ascendancies: from Paragon 150, one of four for your class, each a big
--- defining power of its own, on top of whatever keystones you run.
--- JA|slot|name|icon||text   JE|chosen|level needed|paragon level
+-- Ascendancies: from level 80, one of four for your class, each a big
+-- defining power of its own, on top of whatever keystones you run. Chosen in
+-- this window, opened from the World Tiers window (Overview) or /ascend.
+-- JA|slot|name|icon||text   JE|chosen|level needed|character level
 -- (the empty field once named keystones it empowered; shown if a server sends one)
 -- ---------------------------------------------------------------------------
 
 do
-    local asc = { list = {}, building = nil, chosen = 0, need = 150, level = 0 }
+    local asc = { list = {}, building = nil, chosen = 0, need = 80, level = 0 }
 
     local f = CreateFrame("Frame", "WorldTiersAscendancyFrame", UIParent)
     Size(f, 660, 452)
@@ -1804,7 +1805,7 @@ do
             sub:SetText(asc.chosen > 0 and "Your Ascendancy is chosen. You can change it any time out of combat."
                 or "|cff20ff20Choose one.|r Each is a power of its own, on top of everything else you build.")
         else
-            sub:SetText(string.format("Ascendancies open at |cffff8000Paragon %d|r (you are Paragon %d). A look at what's ahead:", asc.need, asc.level))
+            sub:SetText(string.format("Ascendancies open at |cffff8000level %d|r (you are level %d). A look at what's ahead:", asc.need, asc.level))
         end
         for i, c in ipairs(cards) do
             local a = asc.list[i]
@@ -1862,33 +1863,18 @@ do
             asc.building[tonumber(p[1]) or 0] = { name = p[2] or "?", icon = p[3], ks = p[4], text = p[5] }
         else
             asc.list, asc.building = asc.building or asc.list, nil
-            asc.chosen, asc.need, asc.level = tonumber(p[1]) or 0, tonumber(p[2]) or 150, tonumber(p[3]) or 0
+            asc.chosen, asc.need, asc.level = tonumber(p[1]) or 0, tonumber(p[2]) or 80, tonumber(p[3]) or 0
             if f:IsShown() then Refresh() end
-            if WT.RefreshAscButton then WT.RefreshAscButton() end
+            if WT.RefreshHubAscendancy then WT.RefreshHubAscendancy() end
         end
         return true
     end
 
-    -- the button on the board's side panel, under Glyphs
-    local b = CreateFrame("Button", "WorldTiersAscendancyButton", side, "UIPanelButtonTemplate")
-    Size(b, 76, 20)
-    b:SetPoint("TOPRIGHT", side, "TOPRIGHT", 0, -20)
-    b:SetText("Ascend")
-    b:SetScript("OnClick", function() WT.OpenAscendancy() end)
-    b:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-        GameTooltip:AddLine("Ascendancy", 1, 0.5, 0)
-        local a = asc.list[asc.chosen]
-        GameTooltip:AddLine(a and ("You are " .. a.name .. ".") or string.format("From Paragon %d: one of four for your class.", asc.need), 1, 1, 1, true)
-        GameTooltip:Show()
-    end)
-    b:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    function WT.RefreshAscButton()
-        local a = asc.list[asc.chosen]
-        b:SetText(a and "Ascended" or "Ascend")
+    -- what the World Tiers window shows: the list, the one chosen, when they open
+    function WT.AscInfo()
+        return asc.list, asc.chosen, asc.need, asc.level
     end
-    -- the level line makes room for the two buttons
-    levelText:SetWidth(140)
+    function WT.AskAscendancies() Send("J") end
     SLASH_WORLDTIERSASCEND1 = "/ascend"
     SlashCmdList["WORLDTIERSASCEND"] = function() WT.OpenAscendancy() end
 end
@@ -4943,30 +4929,27 @@ do
     }
 
     -- ======================= Signature Keystone =======================
-    local sigS = Section(418, -330, 382, 200, "Signature Keystone")
+    -- (the left half; the Ascendancy beside it, built in BuildAscendancy)
+    local sigS = Section(418, -330, 188, 200, "Signature Keystone")
     local sigFrame = CreateFrame("Button", nil, sigS)
-    Size(sigFrame, 48, 48)
-    sigFrame:SetPoint("TOPLEFT", 14, -40)
+    Size(sigFrame, 40, 40)
+    sigFrame:SetPoint("TOPLEFT", 12, -38)
     local sigIcon = sigFrame:CreateTexture(nil, "ARTWORK")
     sigIcon:SetAllPoints()
     local sigBorder = sigFrame:CreateTexture(nil, "OVERLAY")
     sigBorder:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
     sigBorder:SetBlendMode("ADD")
     sigBorder:SetVertexColor(0.75, 0.5, 1)
-    Size(sigBorder, 86, 86)
+    Size(sigBorder, 72, 72)
     sigBorder:SetPoint("CENTER")
-    local sigName = Text(sigS, "GameFontNormalLarge", 72, -40, 296)
+    local sigName = Text(sigS, "GameFontNormal", 58, -40, 120)
     sigName:SetTextColor(0.75, 0.5, 1)
-    local sigText = Text(sigS, "GameFontHighlightSmall", 72, -62, 296)
-    sigText:SetHeight(84)
+    local sigText = Text(sigS, "GameFontHighlightSmall", 12, -84, 164)
+    sigText:SetHeight(72)
     sigText:SetJustifyV("TOP")
-    local chooseB = Button(sigS, 150, 24, "Choose...")
-    chooseB:SetPoint("BOTTOMLEFT", 14, 12)
-    local sigFoot = sigS:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    sigFoot:SetPoint("LEFT", chooseB, "RIGHT", 10, 0)
-    sigFoot:SetWidth(200)
-    sigFoot:SetJustifyH("LEFT")
-    sigFoot:SetText("Always on, at any level. Uses no board slot.")
+    local chooseB = Button(sigS, 100, 22, "Choose...")
+    chooseB:SetPoint("BOTTOMLEFT", 12, 12)
+    TipOn(chooseB, function() return "Signature Keystone", "Always on, at any level. Uses no board slot. Free to change out of combat." end)
 
     -- the chooser: every class keystone, the locked ones greyed with their level
     local picker = CreateFrame("Frame", "WorldTiersSignaturePicker", win)
@@ -5055,6 +5038,76 @@ do
         for _, o in ipairs(hub.options) do if o.ks == hub.sig.ks then return o.name, o.text end end
         return "No Signature Keystone", "Choose one of your class keystones."
     end)
+
+    -- ======================= Ascendancy =======================
+    -- (the right half beside the Signature Keystone; the four to choose from
+    -- are in the Ascendancy window, ascend.lua)
+    local function BuildAscendancy()
+        local s = Section(612, -330, 188, 200, "Ascendancy")
+        local iconB = CreateFrame("Button", nil, s)
+        Size(iconB, 40, 40)
+        iconB:SetPoint("TOPLEFT", 12, -38)
+        local icon = iconB:CreateTexture(nil, "ARTWORK")
+        icon:SetAllPoints()
+        local border = iconB:CreateTexture(nil, "OVERLAY")
+        border:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
+        border:SetBlendMode("ADD")
+        border:SetVertexColor(1, 0.5, 0)
+        Size(border, 72, 72)
+        border:SetPoint("CENTER")
+        local name = Text(s, "GameFontNormal", 58, -40, 120)
+        name:SetTextColor(1, 0.5, 0)
+        local text = Text(s, "GameFontHighlightSmall", 12, -84, 164)
+        text:SetHeight(72)
+        text:SetJustifyV("TOP")
+        local b = Button(s, 100, 22, "Choose...")
+        b:SetPoint("BOTTOMLEFT", 12, 12)
+        b:SetScript("OnClick", function() if WT.OpenAscendancy then WT.OpenAscendancy() end end)
+        iconB:SetScript("OnClick", function() if WT.OpenAscendancy then WT.OpenAscendancy() end end)
+        local function Mine()
+            if not WT.AscInfo then return nil end
+            local list, chosen, need, level = WT.AscInfo()
+            return list[chosen], need, level
+        end
+        TipOn(iconB, function()
+            local a, need = Mine()
+            if a then return a.name, a.text end
+            return "Ascendancy", string.format("From level %d: one of four powers for your class, on top of everything else you build.", need or 80)
+        end)
+        TipOn(b, function() return "Ascendancy", "Choose one of four, or change it: free, any time out of combat. Also /ascend." end)
+        local function Refresh()
+            if not WT.AscInfo then return end
+            local a, need, level = Mine()
+            need, level = need or 80, level or UnitLevel("player")
+            if level < need then
+                icon:SetTexture("Interface\\Icons\\INV_Misc_Key_03")
+                icon:SetDesaturated(true)
+                name:SetText("Opens at level " .. need)
+                text:SetText("One of four powers for your class, on top of everything else you build.")
+                b:SetText("Preview...")
+                border:Hide()
+            elseif a then
+                icon:SetTexture("Interface\\Icons\\" .. (a.icon or "INV_Misc_QuestionMark"))
+                icon:SetDesaturated(false)
+                name:SetText(a.name)
+                -- its first sentence here, all of it on the icon's tooltip
+                local first = (a.text or ""):match("^(.-[%.!])%s") or a.text or ""
+                text:SetText(first)
+                b:SetText("Change...")
+                border:Show()
+            else
+                icon:SetTexture("Interface\\Icons\\Spell_Holy_AuraMastery")
+                icon:SetDesaturated(false)
+                name:SetText("Choose an Ascendancy")
+                text:SetText("One of four powers for your class, on top of everything else you build. Free to change out of combat.")
+                b:SetText("Choose...")
+                border:Hide()
+            end
+        end
+        WT.RefreshHubAscendancy = function() if win:IsShown() then Refresh() end end
+        return Refresh
+    end
+    local RefreshAscendancy = BuildAscendancy()
 
     -- ======================= Footer =======================
     local helpB = Button(overview, 140, 24, "How It Works")
@@ -5375,8 +5428,8 @@ do
                 .. "- Your " .. W .. "Signature Keystone" .. E .. " (Overview tab, from level 10) is a class keystone that is always on, "
                 .. "outside the board's slots, long before Paragon.\n"
                 .. "- Keystones that strike by themselves run as auras: /wtaura (or the Overview button) switches them all on or off.\n"
-                .. "- " .. W .. "Ascendancies" .. E .. " (from Paragon 150, the Ascend button on the board or /ascend): choose one of four "
-                .. "for your class, each with powerful effects of its own; the class keystones it goes with count as empowered when you have them on.\n"
+                .. "- " .. W .. "Ascendancies" .. E .. " (from level 80, Overview tab beside your Signature Keystone, or /ascend): choose one of four "
+                .. "for your class, each a big power of its own on top of any talents and keystones. Free to change out of combat.\n"
                 .. "- " .. W .. "Glyphs" .. E .. ": each arm's second notable has a socket. A glyph boosts the matching nodes near it and "
                 .. "has a bonus of its own. 72 to find, from Tier Keys and raid or world bosses (more often at higher tiers); "
                 .. "they level up as you use them. The Glyphs button on the board shows your collection.\n"
@@ -5611,6 +5664,7 @@ do
         if picker:IsShown() then RefreshPicker() end
         if hub.RefreshVault then hub.RefreshVault() end
         if hub.RefreshEvents then hub.RefreshEvents() end
+        RefreshAscendancy()
         auraB:SetText(WT.ksAuras == false and "Keystone Auras: |cffff6666Off|r" or "Keystone Auras: |cff66ff66On|r")
     end
     WT.RefreshHubAuras = function() if win:IsShown() then Refresh() end end
@@ -5623,6 +5677,7 @@ do
     function WT.OpenHub()
         wantOpen = true
         Send("W")
+        if WT.AskAscendancies then WT.AskAscendancies() end
     end
 
     -- WW| WH| WK| WP| WR| WS| WO| WE| WZ| WC|
@@ -5788,7 +5843,7 @@ end
 -- ---------------------------------------------------------------------------
 
 do
-    WT.CLIENT_VERSION = "0.28"
+    WT.CLIENT_VERSION = "0.29"
     local warned = false
     StaticPopupDialogs["WORLDTIERS_OUTDATED"] = {
         text = "|cffff9933Your IsDead WoW client files are out of date.|r\n\n%s\n\nClose the game and start it with |cffffffffIsDead Launcher|r: it updates everything by itself.",
