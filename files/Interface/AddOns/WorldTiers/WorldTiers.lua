@@ -3705,16 +3705,42 @@ do
         return not (WorldTiersCharDB and WorldTiersCharDB.askBind)
     end
     local QUIET = { LOOT_BIND = true, CONFIRM_LOOT_ROLL = true }
+    -- answered on the next frame: the client only starts waiting for the
+    -- answer once its question has gone out, and a yes given in the same
+    -- moment is lost (the item then took a second click)
+    local pendingSlot, pendingRoll, pendingRollType
     local ev = CreateFrame("Frame")
     ev:RegisterEvent("LOOT_BIND_CONFIRM")
     ev:RegisterEvent("CONFIRM_LOOT_ROLL")
+    ev:RegisterEvent("LOOT_CLOSED")
+    ev:Hide()
     ev:SetScript("OnEvent", function(self, event, a, b)
-        if not Auto() then return end
-        if event == "LOOT_BIND_CONFIRM" and a then
-            ConfirmLootSlot(a)
+        if event == "LOOT_CLOSED" then
+            pendingSlot = nil
+            return
+        end
+        if not Auto() or not a then return end
+        if event == "LOOT_BIND_CONFIRM" then
+            pendingSlot = a
             StaticPopup_Hide("LOOT_BIND")
-        elseif event == "CONFIRM_LOOT_ROLL" and a then
-            ConfirmLootRoll(a, b)
+        elseif event == "CONFIRM_LOOT_ROLL" then
+            pendingRoll, pendingRollType = a, b
+            StaticPopup_Hide("CONFIRM_LOOT_ROLL")
+        end
+        self:Show()
+    end)
+    ev:SetScript("OnUpdate", function(self)
+        self:Hide()
+        if pendingSlot then
+            local slot = pendingSlot
+            pendingSlot = nil
+            ConfirmLootSlot(slot)
+            StaticPopup_Hide("LOOT_BIND")
+        end
+        if pendingRoll then
+            local id, kind = pendingRoll, pendingRollType
+            pendingRoll, pendingRollType = nil, nil
+            ConfirmLootRoll(id, kind)
             StaticPopup_Hide("CONFIRM_LOOT_ROLL")
         end
     end)
@@ -5762,7 +5788,7 @@ end
 -- ---------------------------------------------------------------------------
 
 do
-    WT.CLIENT_VERSION = "0.27"
+    WT.CLIENT_VERSION = "0.28"
     local warned = false
     StaticPopupDialogs["WORLDTIERS_OUTDATED"] = {
         text = "|cffff9933Your IsDead WoW client files are out of date.|r\n\n%s\n\nClose the game and start it with |cffffffffIsDead Launcher|r: it updates everything by itself.",
