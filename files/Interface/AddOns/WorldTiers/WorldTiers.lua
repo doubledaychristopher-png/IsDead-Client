@@ -1717,10 +1717,10 @@ do
 end
 
 -- ---------------------------------------------------------------------------
--- Ascendancies: from Paragon 150, one of four for your class, each with big
--- signature effects. Its part of the class keystones stays a choice on the
--- board, but the ones you have on count as empowered more.
--- JA|slot|name|icon|keystones|text   JE|chosen|level needed|paragon level
+-- Ascendancies: from Paragon 150, one of four for your class, each a big
+-- defining power of its own, on top of whatever keystones you run.
+-- JA|slot|name|icon||text   JE|chosen|level needed|paragon level
+-- (the empty field once named keystones it empowered; shown if a server sends one)
 -- ---------------------------------------------------------------------------
 
 do
@@ -1781,9 +1781,9 @@ do
         c.ks:SetJustifyH("LEFT")
         c.ks:SetTextColor(1, 0.82, 0)
         c.text = c:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        c.text:SetPoint("TOPLEFT", 12, -64)
+        c.text:SetPoint("TOPLEFT", 12, -60)
         c.text:SetWidth(280)
-        c.text:SetHeight(76)
+        c.text:SetHeight(84)
         c.text:SetJustifyH("LEFT")
         c.text:SetJustifyV("TOP")
         c.button = CreateFrame("Button", nil, c, "UIPanelButtonTemplate")
@@ -1796,13 +1796,13 @@ do
     local note = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     note:SetPoint("BOTTOM", 0, 18)
     note:SetWidth(600)
-    note:SetText("Its keystones (in gold) are still yours to take on the board; any you have switched on count as empowered 5 more times. Change your Ascendancy any time out of combat.")
+    note:SetText("An Ascendancy stands on its own: it works with any talents and any keystones. Change it any time out of combat.")
 
     local function Refresh()
         local open = asc.level >= asc.need
         if open then
             sub:SetText(asc.chosen > 0 and "Your Ascendancy is chosen. You can change it any time out of combat."
-                or "|cff20ff20Choose one.|r Each changes how your class plays, and powers up its part of your class keystones.")
+                or "|cff20ff20Choose one.|r Each is a power of its own, on top of everything else you build.")
         else
             sub:SetText(string.format("Ascendancies open at |cffff8000Paragon %d|r (you are Paragon %d). A look at what's ahead:", asc.need, asc.level))
         end
@@ -1811,7 +1811,13 @@ do
             if a then
                 c.icon:SetTexture("Interface\\Icons\\" .. (a.icon or "INV_Misc_QuestionMark"))
                 c.name:SetText(a.name)
-                c.ks:SetText("Empowers, when on: " .. (a.ks or ""))
+                if a.ks and a.ks ~= "" then
+                    c.ks:SetText("Empowers, when on: " .. a.ks)
+                    c.ks:Show()
+                else
+                    c.ks:SetText("")
+                    c.ks:Hide()
+                end
                 c.text:SetText(a.text or "")
                 local mine = asc.chosen == i
                 if mine then
@@ -5756,7 +5762,7 @@ end
 -- ---------------------------------------------------------------------------
 
 do
-    WT.CLIENT_VERSION = "0.26"
+    WT.CLIENT_VERSION = "0.27"
     local warned = false
     StaticPopupDialogs["WORLDTIERS_OUTDATED"] = {
         text = "|cffff9933Your IsDead WoW client files are out of date.|r\n\n%s\n\nClose the game and start it with |cffffffffIsDead Launcher|r: it updates everything by itself.",
