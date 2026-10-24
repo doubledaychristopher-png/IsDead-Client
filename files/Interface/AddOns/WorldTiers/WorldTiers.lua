@@ -2391,7 +2391,7 @@ end)
 
 -- ---------------------------------------------------------------------------
 -- Uniques and set pieces glow (0.31): a pulsing border on them in your bags,
--- the bank and the character window, orange for a unique and green for a
+-- the bank and the character window (Blizzard's bags, or Bagnon / Combuctor), orange for a unique and green for a
 -- set piece. The server says where they are (UG|bag,slot,kind;... UGE|),
 -- asked again when your bags change. And a moment when one drops: a toast,
 -- a sound (UF|kind|name|item).
@@ -2445,8 +2445,46 @@ do
     end
     local SLOTS = { "Head", "Neck", "Shoulder", "Shirt", "Chest", "Waist", "Legs", "Feet", "Wrist", "Hands",
                     "Finger0", "Finger1", "Trinket0", "Trinket1", "Back", "MainHand", "SecondaryHand", "Ranged", "Tabard" }
+    -- Bagnon and Combuctor (WotLK): their own item buttons, one class for all of
+    -- them (ItemSlot). Each button's parent is its bag, its id the slot (from 1).
+    -- Another character's bags (Bagnon can show them) never glow.
+    local bagButtons = setmetatable({}, { __mode = "k" })
+    local me = UnitName and UnitName("player")
+    local function PaintBagButton(item)
+        if not item then return end
+        bagButtons[item] = true
+        if not item:IsVisible() then return end
+        local owner = item.GetPlayer and item:GetPlayer()
+        if (owner and owner ~= me) or not (item.GetBag and item:GetID()) then
+            if item.wtGlow then item.wtGlow:Hide() end
+            return
+        end
+        Paint(item, item:GetBag(), item:GetID() - 1)
+        -- its own quality border would mix with the glow: the glow wins
+        if item.wtGlow and item.wtGlow:IsShown() and item.border and item.border.Hide then item.border:Hide() end
+    end
+    local hooked = {}
+    local function HookBagAddons()
+        for _, name in ipairs({ "Bagnon", "Combuctor" }) do
+            local addon = _G[name]
+            if not addon and LibStub then
+                local ace = LibStub("AceAddon-3.0", true)
+                addon = ace and ace:GetAddon(name, true)
+            end
+            local class = addon and addon.ItemSlot
+            if class and not hooked[name] and type(class.Update) == "function" then
+                hooked[name] = true
+                hooksecurefunc(class, "Update", PaintBagButton)
+                if type(class.UpdateBorder) == "function" then hooksecurefunc(class, "UpdateBorder", PaintBagButton) end
+            end
+        end
+    end
+    HookBagAddons()
+    WT.HookBagAddons = HookBagAddons
+
     local function PaintAll()
         for i = 1, (NUM_CONTAINER_FRAMES or 13) do PaintContainer(_G["ContainerFrame" .. i]) end
+        for item in pairs(bagButtons) do PaintBagButton(item) end
         for i = 1, 28 do
             local b = _G["BankFrameItem" .. i]
             if b and b:IsVisible() then Paint(b, -1, i - 1) end
@@ -2480,12 +2518,15 @@ do
     -- ask where they are: on login, when bags change (once a second at most), at the bank
     local ask = CreateFrame("Frame")
     ask:RegisterEvent("PLAYER_ENTERING_WORLD")
+    ask:RegisterEvent("ADDON_LOADED")
     ask:RegisterEvent("BAG_UPDATE")
     ask:RegisterEvent("UNIT_INVENTORY_CHANGED")
     ask:RegisterEvent("BANKFRAME_OPENED")
     ask:RegisterEvent("PLAYERBANKSLOTS_CHANGED")
     ask:Hide()
     ask:SetScript("OnEvent", function(self, event, unit)
+        if event == "ADDON_LOADED" then HookBagAddons() return end   -- a bag addon loaded after us
+        if event == "PLAYER_ENTERING_WORLD" then me = UnitName("player") HookBagAddons() end
         if event == "UNIT_INVENTORY_CHANGED" and unit ~= "player" then return end
         self.wait = event == "PLAYER_ENTERING_WORLD" and 3 or 1
         self:Show()
@@ -6339,7 +6380,7 @@ end
 -- ---------------------------------------------------------------------------
 
 do
-    WT.CLIENT_VERSION = "0.31"
+    WT.CLIENT_VERSION = "0.32"
     local warned = false
     StaticPopupDialogs["WORLDTIERS_OUTDATED"] = {
         text = "|cffff9933Your IsDead WoW client files are out of date.|r\n\n%s\n\nClose the game and start it with |cffffffffIsDead Launcher|r: it updates everything by itself.",
