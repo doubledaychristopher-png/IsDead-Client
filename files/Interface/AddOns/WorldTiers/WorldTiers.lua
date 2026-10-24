@@ -1717,9 +1717,9 @@ do
 end
 
 -- ---------------------------------------------------------------------------
--- Ascendancies: from Paragon 150, one of four for your class. Each grants its
--- part of the board's three class keystones (always on, outside the slots,
--- empowered) and signature effects of its own.
+-- Ascendancies: from Paragon 150, one of four for your class, each with big
+-- signature effects. Its part of the class keystones stays a choice on the
+-- board, but the ones you have on count as empowered more.
 -- JA|slot|name|icon|keystones|text   JE|chosen|level needed|paragon level
 -- ---------------------------------------------------------------------------
 
@@ -1796,13 +1796,13 @@ do
     local note = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     note:SetPoint("BOTTOM", 0, 18)
     note:SetWidth(600)
-    note:SetText("An Ascendancy's keystones are always on, outside your keystone slots, and count as empowered. Change it any time out of combat.")
+    note:SetText("Its keystones (in gold) are still yours to take on the board; any you have switched on count as empowered 5 more times. Change your Ascendancy any time out of combat.")
 
     local function Refresh()
         local open = asc.level >= asc.need
         if open then
             sub:SetText(asc.chosen > 0 and "Your Ascendancy is chosen. You can change it any time out of combat."
-                or "|cff20ff20Choose one.|r Each takes one part of your class's keystones to new heights.")
+                or "|cff20ff20Choose one.|r Each changes how your class plays, and powers up its part of your class keystones.")
         else
             sub:SetText(string.format("Ascendancies open at |cffff8000Paragon %d|r (you are Paragon %d). A look at what's ahead:", asc.need, asc.level))
         end
@@ -1811,7 +1811,7 @@ do
             if a then
                 c.icon:SetTexture("Interface\\Icons\\" .. (a.icon or "INV_Misc_QuestionMark"))
                 c.name:SetText(a.name)
-                c.ks:SetText("Grants: " .. (a.ks or ""))
+                c.ks:SetText("Empowers, when on: " .. (a.ks or ""))
                 c.text:SetText(a.text or "")
                 local mine = asc.chosen == i
                 if mine then
@@ -5344,7 +5344,7 @@ do
                 .. "outside the board's slots, long before Paragon.\n"
                 .. "- Keystones that strike by themselves run as auras: /wtaura (or the Overview button) switches them all on or off.\n"
                 .. "- " .. W .. "Ascendancies" .. E .. " (from Paragon 150, the Ascend button on the board or /ascend): choose one of four "
-                .. "for your class. Each grants three of your class keystones, always on and empowered, and powers of its own.\n"
+                .. "for your class, each with powerful effects of its own; the class keystones it goes with count as empowered when you have them on.\n"
                 .. "- " .. W .. "Glyphs" .. E .. ": each arm's second notable has a socket. A glyph boosts the matching nodes near it and "
                 .. "has a bonus of its own. 72 to find, from Tier Keys and raid or world bosses (more often at higher tiers); "
                 .. "they level up as you use them. The Glyphs button on the board shows your collection.\n"
